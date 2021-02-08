@@ -5,7 +5,7 @@ import { addZoom } from './addZoom.js'
 
 function withZoom() {
   const {
-    layout: { zoom }
+    layout: { zoom = false }
   } = this._option;
 
   if (zoom) {
