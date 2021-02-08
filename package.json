@@ -1,13 +1,12 @@
 {
   "name": "ccd3",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "A data visualization chart library for dynamic interaction",
   "main": "index.js",
   "scripts": {
     "build": "rollup -c"
   },
   "keywords": [
-    "d3",
     "visualization",
     "svg",
     "animation",
