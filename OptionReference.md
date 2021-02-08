@@ -311,6 +311,8 @@ const option = {
 
 ## Theme Configuration
 
+ccd3 maintains a global topic object internally.
+
 The `Theme configuration` is valid for each chart.
 
 1. [lightBlue](#lightBlue)
