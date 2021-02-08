@@ -10,11 +10,13 @@
    * @param {object} data dataset fot the chart
    * @param {object} option option for the chart
    */
-  function setState(data, option) {
+  function setState(data, option, theme) {
     // Optional data
     this._data = data ? data : this._data;
     // Optional option
     this._option = option ? option : this._option;
+    // Optional theme
+    this._theme = theme ? theme : this._theme;
     // Dynamic rendering chart
     this.render();
   }
@@ -33,11 +35,12 @@
      * Based on the same Strategy.
      * @param {string} domId dom Id
      * @param {object} chartOption dom's option
+     * @param {object} theme dom's theme config
      */
-    init(domId, chartOption) {
+    init(domId, chartOption, theme) {
       const ChartClass = this._Class;
       const chart = new ChartClass(domId, chartOption);
-      return [chart, (data, option) => setState.call(chart, data, option)]
+      return [chart, (data, option) => setState.call(chart, data, option, theme)]
     }
   }
 
@@ -66,8 +69,9 @@
      * use chart
      * @param {string} domId the dom'id of a chart container
      * @param {object} chartOption the option of chart
+     * @param {object} theme the theme config of chart
      */
-    useStrategy(domId, chartOption) {
+    useStrategy(domId, chartOption, theme) {
       try {
         const { name: chartUniqueKey } = chartOption;
 
@@ -77,7 +81,7 @@
         if (!this._strategies.has(chartUniqueKey))
           throw new Error(`The [${chartUniqueKey}] chart doesn't exist in the chart factory.`);
 
-        return this._strategies.get(chartUniqueKey).init(domId, chartOption);
+        return this._strategies.get(chartUniqueKey).init(domId, chartOption, theme);
       } catch (e) {
         console.error(e);
       }
@@ -89,10 +93,11 @@
   /**
    * init the chart
    * @param {string} domId dom Id
-   * @param {object} chartOption dom's option
+   * @param {object} chartOption dom's option config
+   * @param {object} theme theme config
    */
-  const init = (domId, chartOption) => {
-    return factory.useStrategy(domId, chartOption)
+  const init = (domId, chartOption, theme) => {
+    return factory.useStrategy(domId, chartOption, theme)
   };
 
   /**
@@ -342,26 +347,45 @@
 
       this._axisBottomGroup
         .attr('id', `${this._domId}AxisBottomGroup`)
-        .attr('class', `axis-bottom-group`)
         .attr('transform', `translate(${this._margin.left},${this._innerHeight + this._margin.top})`);
     };
 
     const addAxis = () => {
       const {
         axisBottom: {
+          grid = false,
           transition: { duration, ease }
         }
       } = this._option;
+
+      const {
+        axisBottom: {
+          tickColor = '#ccc',
+          textColor = '#999',
+          lineColor = '#ccc'
+        }
+      } = this._theme;
 
       this._axisBottomGroup
         .transition()
         .duration(duration)
         .ease(ease)
-        .call(
-          d3.axisBottom(this._axisBottomScale)
-            // .tickSizeInner(-this._innerHeight)
-            // .tickSizeOuter(-this._innerHeight)
-        );
+        .call(g => {
+          const axis = d3.axisBottom(this._axisBottomScale);
+          grid
+            ? axis.tickSizeInner(-this._innerHeight).tickSizeOuter(-this._innerHeight)
+            : null;
+          return axis(g)
+        })
+        .call(g => {
+          g.selectAll('text')
+            .attr('fill', textColor);
+          g.selectAll('line')
+            .attr('stroke', tickColor);
+
+          g.selectAll('path')
+            .attr('stroke', lineColor);
+        });
     };
 
     addGroup();
@@ -482,19 +506,44 @@
     const addAxis = () => {
       const {
         axisLeft: {
+          grid = false,
           transition: { duration, ease }
         }
       } = this._option;
+
+      const {
+        axisBottom: {
+          tickColor = '#ccc',
+          textColor = '#999',
+          lineColor = '#ccc'
+        }
+      } = this._theme;
 
       this._axisLeftGroup
         .transition()
         .duration(duration)
         .ease(ease)
-        .call(
-          d3.axisLeft(this._axisLeftScale)
-          // .tickSizeInner(-this._innerHeight)
-          // .tickSizeOuter(-this._innerHeight)
-        );
+        .call(g => {
+          const axis = d3.axisLeft(this._axisLeftScale);
+          grid
+            ? axis.tickSizeInner(-this._innerWidth).tickSizeOuter(-this._innerWidth)
+            : null;
+          return axis(g);
+        })
+        .call(g => {
+          g.selectAll('text')
+            .attr('fill', textColor);
+          g.selectAll('line')
+            .attr('stroke', tickColor);
+
+          g.selectAll('.tick:last-child line')
+            .attr('stroke', lineColor);
+          g.selectAll('.tick:first-child line')
+            .attr('stroke', lineColor);
+
+          g.selectAll('path')
+            .attr('stroke', lineColor);
+        });
     };
 
     addGroup();
@@ -524,14 +573,31 @@
     this._titleGroup
       .selectAll(".title")
       .data([text])
-      .join("text")
-      .html(d => d)
-      .attr('dy', '1em')
-      .attr('x', x)
-      .attr('y', y)
-      .style('fill', color)
-      .style('font-size', fontSize)
-      .style('font-weight', fontWeight);
+      .join(enter => enter
+        .append('text')
+        .attr('class', 'title')
+        .attr('dy', '1em')
+        .attr('x', x)
+        .attr('y', y)
+        .style('fill', color)
+        .style('font-size', fontSize)
+        .style('font-weight', fontWeight)
+        ,
+        update => update
+          .transition()
+          .attr('class', 'title')
+          .attr('dy', '1em')
+          .attr('x', x)
+          .attr('y', y)
+          .style('fill', color)
+          .style('font-size', fontSize)
+          .style('font-weight', fontWeight)
+          .selection()
+        ,
+        exit => exit.remove()
+      )
+      .html(d => d);
+
   }
 
   /**
@@ -553,18 +619,34 @@
         }
       }
     } = this._theme;
-    
+
     this._titleGroup
       .selectAll(".sub-title")
       .data([subText])
-      .join("text")
-      .html(d => d)
-      .attr('dy', '3em')
-      .attr('x', x)
-      .attr('y', y)
-      .style('fill', color)
-      .style('font-size', fontSize)
-      .style('font-weight', fontWeight);
+      .join(enter => enter
+        .append('text')
+        .attr('class', 'sub-title')
+        .attr('dy', '3em')
+        .attr('x', x)
+        .attr('y', y)
+        .style('fill', color)
+        .style('font-size', fontSize)
+        .style('font-weight', fontWeight),
+        update => update
+          .transition()
+          .attr('class', 'sub-title')
+          .attr('dy', '3em')
+          .attr('x', x)
+          .attr('y', y)
+          .style('fill', color)
+          .style('font-size', fontSize)
+          .style('font-weight', fontWeight)
+          .selection(),
+        exit => exit.remove()
+      )
+
+      .html(d => d);
+
   }
 
   /**
@@ -630,10 +712,8 @@
   }
 
   function withTitle() {
-    if (this._titleGroup)
-      return null;
-
-    withGroup.call(this, "_titleGroup", 'title-group', 'svg', `translate(0,0)`);
+    if (!this._titleGroup)
+      withGroup.call(this, "_titleGroup", 'title-group', 'svg', `translate(0,0)`);
 
     addText.call(this);
     addSubText.call(this);
@@ -641,36 +721,63 @@
   }
 
   function addTooltipContainer() {
-    this._theme;
-    
+    const {
+      tooltip: {
+        pointerEvents = 'none',
+        textColor = '#212121',
+        backgroundColor = '#ffffffcc',
+        boxShadow = '0 3px 14px rgba(0,0,0,0.4)',
+        border = ' 1px solid #eee',
+        borderRadius = '5px',
+        padding = '0.75rem 1rem',
+        whiteSpace = 'no-warp',
+        zIndex = '3080',
+        position = 'absolute'
+      }
+    } = this._theme;
+
     if (!this._tooltip)
       this._tooltip = this._container
         .append('div')
-        .classed('ccd3-tooltip', true);
+        .style('pointer-events', pointerEvents)
+        .style('white-space', whiteSpace)
+        .style('border-radius', borderRadius)
+        .style('color', textColor)
+        .style('background-color', backgroundColor)
+        .style('border', border)
+        .style('box-shadow', boxShadow)
+        .style('padding', padding)
+        .style('z-index', zIndex)
+        .style('position', position)
+        .style('top', 0)
+        .style('display', 'none');
   }
 
   function addListener(property, format) {
 
+    const {
+      tooltip: {
+        transition: { duration, ease }
+      }
+    } = this._option;
+
     this[property]
-
       .style('cursor', 'pointer')
-
       .on('mouseover', (e) => {
         this._tooltip.transition().style('display', 'block');
         d3.select(e.target).attr('opacity', '0.75');
       })
-
       .on('mousemove', (e, d) => {
         let currentX = `${e.offsetX}px`;
         let currentY = `${e.offsetY}px`;
         this._tooltip
           .html(format(e, d))
           .transition()
-          .ease(d3.easeCubic)
+          .duration(duration)
+          .ease(ease)
           .style('left', currentX)
           .style('top', currentY);
       })
-
       .on('mouseout', (e) => {
         this._tooltip.transition().style('display', 'none');
         d3.select(e.target).attr('opacity', '1');
@@ -683,28 +790,15 @@
     addListener.call(this, property, format);
   }
 
-  let name = 'default',
-    primary1 = '#93b7e3',
-    primary2 = '#59c4e6',
-    primary3 = '#edafda',
-    primary4 = '#516b91',
-    primary5 = '#a5e7f0',
-    primary6 = '#cbb0e3';
-
-  let colorSets = ['#93b7e3', ' #59c4e6', '#edafda', ' #516b91', '#a5e7f0', ' #cbb0e3', ' #3fb1e3', ' #6be6c1', ' #626c91', '#a0a7e6', '#c4ebad', '#96dee8'];
-
-  const theme = {
-    name,
-    primary1,
-    primary2,
-    primary3,
-    primary4,
-    primary5,
-    primary6,
-    colorSets,
-    algorithmBar: {
-
-    },
+  const lightBlue = {
+    name: 'lightBlue',
+    primary1: '#93b7e3',
+    primary2: '#59c4e6',
+    primary3: '#edafda',
+    primary4: '#516b91',
+    primary5: '#a5e7f0',
+    primary6: '#cbb0e3',
+    colorSets: ['#93b7e3', ' #59c4e6', '#edafda', ' #516b91', '#a5e7f0', ' #cbb0e3', ' #3fb1e3', ' #6be6c1', ' #626c91', '#a0a7e6', '#c4ebad', '#96dee8'],
     layout: {
       backgroundColor: '#fff',
       textColor: '#212121',
@@ -719,12 +813,15 @@
         fontWeight: '700'
       },
       subTextStyle: {
+        x: '0',
+        y: '0',
         color: '#93b7e3',
         fontSize: '1em',
         fontWeight: '400'
       },
     },
     axisBottom: {
+      tickColor: '#eee',
       lineColor: '#ccc',
       textColor: '#999',
     },
@@ -733,18 +830,24 @@
       textColor: '#999',
     },
     tooltip: {
+      pointerEvents: 'none',
       textColor: '#212121',
       backgroundColor: '#ffffffcc',
       boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
       border: ' 1px solid #eee',
+      borderRadius: '5px',
+      padding: '0.75rem 1rem',
+      whiteSpace: 'no-warp',
+      zIndex: '3080',
+      position: 'absolute',
     }
   };
 
   class AlgorithmBar {
-    constructor(domId, option, theme$1) {
+    constructor(domId, option, theme) {
       this._domId = domId;
       this._option = option;
-      this._theme = theme$1 ? theme$1 : theme;
+      this._theme = theme ? theme : lightBlue;
       withLayout.call(this, domId, option);
     }
 

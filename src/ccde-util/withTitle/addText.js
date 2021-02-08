@@ -21,14 +21,31 @@ function addText() {
   this._titleGroup
     .selectAll(".title")
     .data([text])
-    .join("text")
+    .join(enter => enter
+      .append('text')
+      .attr('class', 'title')
+      .attr('dy', '1em')
+      .attr('x', x)
+      .attr('y', y)
+      .style('fill', color)
+      .style('font-size', fontSize)
+      .style('font-weight', fontWeight)
+      ,
+      update => update
+        .transition()
+        .attr('class', 'title')
+        .attr('dy', '1em')
+        .attr('x', x)
+        .attr('y', y)
+        .style('fill', color)
+        .style('font-size', fontSize)
+        .style('font-weight', fontWeight)
+        .selection()
+      ,
+      exit => exit.remove()
+    )
     .html(d => d)
-    .attr('dy', '1em')
-    .attr('x', x)
-    .attr('y', y)
-    .style('fill', color)
-    .style('font-size', fontSize)
-    .style('font-weight', fontWeight);
+
 }
 
 export { addText }

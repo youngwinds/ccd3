@@ -14,11 +14,12 @@ class Strategy {
    * Based on the same Strategy.
    * @param {string} domId dom Id
    * @param {object} chartOption dom's option
+   * @param {object} theme dom's theme config
    */
-  init(domId, chartOption) {
+  init(domId, chartOption, theme) {
     const ChartClass = this._Class;
     const chart = new ChartClass(domId, chartOption);
-    return [chart, (data, option) => setState.call(chart, data, option)]
+    return [chart, (data, option) => setState.call(chart, data, option, theme)]
   }
 }
 

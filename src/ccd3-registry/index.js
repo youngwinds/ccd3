@@ -3,10 +3,11 @@ import { factory } from './factory.js';
 /**
  * init the chart
  * @param {string} domId dom Id
- * @param {object} chartOption dom's option
+ * @param {object} chartOption dom's option config
+ * @param {object} theme theme config
  */
-const init = (domId, chartOption) => {
-  return factory.useStrategy(domId, chartOption)
+const init = (domId, chartOption, theme) => {
+  return factory.useStrategy(domId, chartOption, theme)
 }
 
 /**

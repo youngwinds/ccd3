@@ -25,8 +25,9 @@ class Factory {
    * use chart
    * @param {string} domId the dom'id of a chart container
    * @param {object} chartOption the option of chart
+   * @param {object} theme the theme config of chart
    */
-  useStrategy(domId, chartOption) {
+  useStrategy(domId, chartOption, theme) {
     try {
       const { name: chartUniqueKey } = chartOption;
 
@@ -36,7 +37,7 @@ class Factory {
       if (!this._strategies.has(chartUniqueKey))
         throw new Error(`The [${chartUniqueKey}] chart doesn't exist in the chart factory.`);
 
-      return this._strategies.get(chartUniqueKey).init(domId, chartOption);
+      return this._strategies.get(chartUniqueKey).init(domId, chartOption, theme);
     } catch (e) {
       console.error(e);
     }

@@ -4,8 +4,6 @@
 
 ccd3 has 4 kind of chart configuration.
 
-
-
 [Common Configuration](#Common Configuration)
 
 The `Common Configuration` is valid for each chart.
@@ -17,16 +15,12 @@ The `Common Configuration` is valid for each chart.
 5. [axisBottom](#option.axisBottom)
 6. [axisLeft](#option.axisLeft)
 
-
-
 [Scale Configuration](#Scale Configuration)
 
 In addition, `Scale Configuration`  are listed independently.For each scale, there are some additional configuration items.
 
 1. [scaleBand](#scaleBand)
 2. [scaleLinear](#scaleLinear)
-
-
 
 [Independent Configuration](#Independent Configuration)
 
@@ -35,8 +29,6 @@ The `Independent Configuration` is valid for single chart.
 1. [algorithmBar](#algorithmBar)
 
 [Theme configuration](#Theme configuration)
-
-
 
 The `Theme configuration` is valid for each chart.
 
@@ -73,7 +65,6 @@ const option = {
 
 1. algorithmBar
 2. algorithmTree
-3. basicBar
 
 ### option.layout
 

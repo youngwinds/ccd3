@@ -5,10 +5,8 @@ import { withGroup } from '../withGroup/index.js'
 
 
 function withTitle() {
-  if (this._titleGroup)
-    return null;
-
-  withGroup.call(this, "_titleGroup", 'title-group', 'svg', `translate(0,0)`);
+  if (!this._titleGroup)
+    withGroup.call(this, "_titleGroup", 'title-group', 'svg', `translate(0,0)`);
 
   addText.call(this);
   addSubText.call(this);
