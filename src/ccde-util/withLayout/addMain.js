@@ -18,7 +18,6 @@ function addMain() {
   this._mainGroup = withZoom.call(this);
 
   this._mainGroup.attr('id', `${this._domId}MainGroup`)
-    .attr('class', `main-group`)
     .attr('transform', `translate(${this._margin.left},${this._margin.top})`)
 }
 

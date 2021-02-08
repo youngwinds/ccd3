@@ -51,26 +51,45 @@ function loadAxis() {
 
     this._axisBottomGroup
       .attr('id', `${this._domId}AxisBottomGroup`)
-      .attr('class', `axis-bottom-group`)
       .attr('transform', `translate(${this._margin.left},${this._innerHeight + this._margin.top})`)
   }
 
   const addAxis = () => {
     const {
       axisBottom: {
+        grid = false,
         transition: { duration, ease }
       }
     } = this._option;
+
+    const {
+      axisBottom: {
+        tickColor = '#ccc',
+        textColor = '#999',
+        lineColor = '#ccc'
+      }
+    } = this._theme;
 
     this._axisBottomGroup
       .transition()
       .duration(duration)
       .ease(ease)
-      .call(
-        d3.axisBottom(this._axisBottomScale)
-          // .tickSizeInner(-this._innerHeight)
-          // .tickSizeOuter(-this._innerHeight)
-      )
+      .call(g => {
+        const axis = d3.axisBottom(this._axisBottomScale)
+        grid
+          ? axis.tickSizeInner(-this._innerHeight).tickSizeOuter(-this._innerHeight)
+          : null;
+        return axis(g)
+      })
+      .call(g => {
+        g.selectAll('text')
+          .attr('fill', textColor);
+        g.selectAll('line')
+          .attr('stroke', tickColor);
+
+        g.selectAll('path')
+          .attr('stroke', lineColor)
+      })
   }
 
   addGroup();

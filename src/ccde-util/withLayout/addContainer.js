@@ -3,13 +3,21 @@
  * tips：主要是用户的容器，可能会加上padding甚至是加上边框或者滚动条。所以必须要让这2个容器松耦。
  */
 function addContainer() {
+  const {
+    layout: {
+      backgroundColor = '#fff',
+      color = '#212121'
+    }
+  } = this._theme;
+
   this._container = d3.select(`#${this._domId}`)
     .append('div')
     .attr('id', `${this._domId}Container`)
-    .classed(`ccd3-chart-container`, true)
+    .style('background-color', backgroundColor)
+    .style('color', color)
+    .style('position', 'relative')
     .style('width', '100%')
-    .style('height', '100%')
-    .style('position', 'relative');
+    .style('height', '100%');
 }
 
 export { addContainer }

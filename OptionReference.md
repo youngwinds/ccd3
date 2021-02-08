@@ -1,6 +1,10 @@
+[TOC]
+
 # CCD3 Option Reference
 
-## option.name
+## Common Configuration
+
+### option.name
 
 **demo**
 
@@ -22,7 +26,7 @@ const option = {
 2. algorithmTree
 3. basicBar
 
-## option.layout
+### option.layout
 
 **demo**
 
@@ -47,7 +51,51 @@ const option = {
 | layout.margin | object  | `{top:10,right:10,bottom:10,left:10}` | The distance between the main chart view and the border of the dom container. |
 | layout.zoom   | boolean | `true`                                | Turn on（off） the zoom function of the whole chart.         |
 
-## option.axisBottom
+### option.title
+
+**demo**
+
+```js
+const option = {
+    title: {
+        text: 'Main Title',
+        subText: 'Sub title'
+    }
+}
+```
+
+**detail**
+
+| name          | type   | sample value | description |
+| ------------- | ------ | ------------ | ----------- |
+| title.text    | string | `main Title` | main title  |
+| title.subText | string | `sub title`  | sub title   |
+
+### option.tooltip
+
+**demo**
+
+```js
+const option = {
+    tooltip: {
+        format: (event,data) => {
+            let str = "";
+            for (let key in data) {
+                str += `${key} : ${data[key]} <br/>`
+            }
+            return str;
+        }
+    }
+}
+```
+
+**detail**
+
+| name           | type     | sample value  | description                                                  |
+| -------------- | -------- | ------------- | ------------------------------------------------------------ |
+| tooltip.format | function | ()=>"tooltip" | Passing event object and clicking object‘s value, to format tooltip. |
+
+### option.axisBottom
 
 **demo**
 
@@ -80,7 +128,7 @@ const option = {
 1. scaleBand
 2. scaleLinear
 
-## option.axisLeft
+### option.axisLeft
 
 **demo**
 
@@ -112,3 +160,84 @@ const option = {
 
 1. scaleBand
 2. scaleLinear
+
+## scale configuration
+
+For each scale, there are some additional configuration items.
+
+### scaleBand
+
+When name is `scaleBand`,like this demo.
+
+There are three optional options:
+
+1. `round ` which default to false
+2. `paddingInner ` which default to 0.5
+3. `paddingOuter ` which default to 0.5
+
+```js
+const option = {
+    axisBottom:{
+        key: 'name',
+        scale: {
+            name: 'scaleBand',
+            reverse: false,
+            paddingInner: 0.5,
+            paddingOuter: 0.5,
+        }
+    }
+}
+```
+
+### scaleLinear
+
+When name is `scaleLinear`,like this demo.
+
+There are three optional options:
+
+1. `extent ` which default to false
+2. `reverse ` which default to false
+3. `nice ` which default to true
+
+```js
+const option = {
+    leftAxis: {
+        key: 'value',
+        scale: {
+            name: 'scaleLinear',
+            extent: false,
+            reverse: false,
+            nice: true,
+        }
+    }
+}
+```
+
+## Independent configuration
+
+### algorithmBar
+
+**demo**
+
+```js
+const option = {
+    algorithmBar: {
+        uniqueKey: 'name',
+        stateKey: 'state',
+        state: {
+            active: '#c4ebad',
+            start: '#93b7e3',
+            exchange: '#edafda',
+            end: '#6be6c1',
+        },
+        on: {
+            click: (event, value, data) => { console.log(event, value, data) }
+        },
+        animation: {
+            duration: 1000,
+            ease: d3.easeLinear
+        }
+    },
+}
+```
+

@@ -128,13 +128,21 @@
    * tips：主要是用户的容器，可能会加上padding甚至是加上边框或者滚动条。所以必须要让这2个容器松耦。
    */
   function addContainer() {
+    const {
+      layout: {
+        backgroundColor = '#fff',
+        color = '#212121'
+      }
+    } = this._theme;
+
     this._container = d3.select(`#${this._domId}`)
       .append('div')
       .attr('id', `${this._domId}Container`)
-      .classed(`ccd3-chart-container`, true)
+      .style('background-color', backgroundColor)
+      .style('color', color)
+      .style('position', 'relative')
       .style('width', '100%')
-      .style('height', '100%')
-      .style('position', 'relative');
+      .style('height', '100%');
   }
 
   /**
@@ -154,9 +162,9 @@
    * 添加svg画布，我们约定一个图表仅对应svg。
    */
   function addSvg() {
-    this._svg = this._container.append('svg')
+    this._svg = this._container
+      .append('svg')
       .attr('id', `${this._domId}Svg`)
-      .attr('class', this._name)
       .attr('viewBox', this._viewBox);
   }
 
@@ -210,7 +218,6 @@
     this._mainGroup = withZoom.call(this);
 
     this._mainGroup.attr('id', `${this._domId}MainGroup`)
-      .attr('class', `main-group`)
       .attr('transform', `translate(${this._margin.left},${this._margin.top})`);
   }
 
@@ -233,13 +240,20 @@
 
     const {
       axisBottom: {
-        key
+        key,
+        scale: {
+          reverse = false,
+          paddingInner = 0.5,
+          paddingOuter = 0.5,
+        }
       }
     } = this._option;
 
     this._axisBottomScale
       .domain(this._data.map(d => d[key]))
-      .range([0, this._innerHeight]);
+      .range(reverse ? [this._innerWidth, 0] : [0, this._innerWidth])
+      .paddingInner(paddingInner)
+      .paddingOuter(paddingOuter);
 
     /**
      * the interface for _axisBottomScale
@@ -250,7 +264,7 @@
     /**
      * the bandwith for category value
      */
-    this._bandwidth = () => this.bandwidth();
+    this._bandwidth = () => this._axisBottomScale.bandwidth();
   }
 
   function scaleLinear() {
@@ -258,14 +272,19 @@
 
     const {
       axisBottom: {
-        key
+        key,
+        scale: {
+          extent = false,
+          reverse = false,
+          nice = true
+        }
       }
     } = this._option;
 
     this._axisBottomScale
-      .domain([0, d3.max(this._data, d => d[key])])
-      .range([0, this._innerHeight]);
-
+      .domain(extent ? d3.extent(this._data, d => d[key]) : [0, d3.max(this._data, d => d[key])])
+      .range(reverse ? [this._innerWidth, 0] : [0, this._innerWidth]);
+    nice ? this._axisBottomScale.nice() : null;
     /**
     * the interface for _axisBottomScale
     * @param {string || number} d 
@@ -349,20 +368,443 @@
     addAxis();
   }
 
+  function scaleBand$1() {
+    this._axisLeftScale = d3.scaleBand();
+
+    const {
+      axisLeft: {
+        key,
+        scale: {
+          reverse = false,
+          paddingInner = 0.5,
+          paddingOuter = 0.5,
+        }
+      }
+    } = this._option;
+
+    this._axisLeftScale
+      .domain(this._data.map(d => d[key]))
+      .range(reverse ? [0, this._innerHeight] : [this._innerHeight, 0])
+      .paddingInner(paddingInner)
+      .paddingOuter(paddingOuter);
+
+    /**
+     * the interface for _axisLeftScale
+     * @param {string || number} d 
+     */
+    this._bottomScale = (d) => +this._axisLeftScale(d);
+
+    /**
+     * the bandwith for category value
+     */
+    this._bandwidth = () => this.bandwidth();
+  }
+
+  function scaleLinear$1() {
+    this._axisLeftScale = d3.scaleLinear();
+
+    const {
+      axisLeft: {
+        key,
+        scale: {
+          extent = false,
+          reverse = false,
+          nice = true,
+        }
+      }
+    } = this._option;
+
+    this._axisLeftScale
+      .domain(extent ? d3.extent(this._data, d => d[key]) : [0, d3.max(this._data, d => d[key])])
+      .range(reverse ? [0, this._innerHeight] : [this._innerHeight, 0]);
+    nice ? this._axisLeftScale.nice() : null;
+    /**
+    * the interface for _axisLeftScale
+    * @param {string || number} d 
+    */
+    this._leftScale = (d) => +this._axisLeftScale(d);
+  }
+
   function withAxisLeft() {
+    if (!this._option.axisLeft || !this._option.axisLeft.scale || !this._option.axisLeft.scale.name)
+      throw new TypeError("[axisLeft] Error!");
+
+    loadScale$1.call(this);
+    loadAxis$1.call(this);
+  }
+
+  /**
+   * Load corresponding scale by name.
+   */
+  function loadScale$1() {
+    const {
+      axisLeft: {
+        scale: {
+          name
+        }
+      }
+    } = this._option;
+
+    switch (name) {
+      case 'scaleBand': {
+        scaleBand$1.call(this);
+        break;
+      }
+      case 'scaleLinear': {
+        scaleLinear$1.call(this);
+        break;
+      }
+      default: {
+        throw new Error("Unrecognized scale name");
+      }
+    }
+  }
+
+  /**
+   * Load axis
+   */
+  function loadAxis$1() {
+    const addGroup = () => {
+      if (this._axisLeftGroup)
+        return;
+
+      if (this._zoomGroup)
+        this._axisLeftGroup = this._zoomGroup.insert('g', `#${this._domId}MainGroup`);
+      else
+        this._axisLeftGroup = this._svg.insert('g', `#${this._domId}MainGroup`);
+
+      this._axisLeftGroup
+        .attr('id', `${this._domId}axisLeftGroup`)
+        .attr('class', `axis-bottom-group`)
+        .attr('transform', `translate(${this._margin.left},${this._margin.top})`);
+    };
+
+    const addAxis = () => {
+      const {
+        axisLeft: {
+          transition: { duration, ease }
+        }
+      } = this._option;
+
+      this._axisLeftGroup
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .call(
+          d3.axisLeft(this._axisLeftScale)
+          // .tickSizeInner(-this._innerHeight)
+          // .tickSizeOuter(-this._innerHeight)
+        );
+    };
+
+    addGroup();
+    addAxis();
+  }
+
+  /**
+   * 添加主标题
+   */
+  function addText() {
+    const {
+      title: { text }
+    } = this._option;
+
+    const {
+      title: {
+        textStyle: {
+          x = '0',
+          y = '0',
+          color = '#516b91',
+          fontSize = '1.5em',
+          fontWeight = '700'
+        }
+      }
+    } = this._theme;
+
+    this._titleGroup
+      .selectAll(".title")
+      .data([text])
+      .join("text")
+      .html(d => d)
+      .attr('dy', '1em')
+      .attr('x', x)
+      .attr('y', y)
+      .style('fill', color)
+      .style('font-size', fontSize)
+      .style('font-weight', fontWeight);
+  }
+
+  /**
+   * 添加副标题
+   */
+  function addSubText() {
+    const {
+      title: { subText }
+    } = this._option;
+
+    const {
+      title: {
+        subTextStyle: {
+          x = '0',
+          y = '0',
+          color = '#516b91',
+          fontSize = '1.5em',
+          fontWeight = '700'
+        }
+      }
+    } = this._theme;
+    
+    this._titleGroup
+      .selectAll(".sub-title")
+      .data([subText])
+      .join("text")
+      .html(d => d)
+      .attr('dy', '3em')
+      .attr('x', x)
+      .attr('y', y)
+      .style('fill', color)
+      .style('font-size', fontSize)
+      .style('font-weight', fontWeight);
+  }
+
+  /**
+   * 添加标题提示信息
+   */
+  function addInfo() {
 
   }
 
+  /**
+   * 基于父容器添加新的group，并为其设置类名、和transform。
+   * 现在组的规模较小，
+   * 如果规模持续扩大，
+   * 那么未来考虑进行代码优化，
+   * @param {string} propertyName 属性名称
+   * @param {string} className 样式类名
+   * @param {string} parentGroupName 待添加到的父容器名称（个人自定义）
+   * @param {string} translate transofrm样式
+   */
+
+  function withGroup(propertyName, className, parentGroupName, translate) {
+
+    if (typeof this[propertyName] !== "undefined")
+      return null;
+
+    switch (parentGroupName) {
+      case 'main': {
+        this[propertyName] = addInMainGroup.call(this, className, translate);
+        break;
+      }    case 'zoom': {
+        this[propertyName] = addInZoomGroup.call(this, className, translate);
+        break;
+      }    case 'svg': {
+        this[propertyName] = addInSvgGroup.call(this, className, translate);
+        break;
+      }    default: {
+        this[propertyName] = addInMainGroup.call(this, className, translate);
+        break;
+      }  }
+    return null;
+  }
+
+
+  function addInMainGroup(className, translate) {
+    return this._mainGroup
+      .append('g')
+      .classed(className, true)
+      .attr('transform', translate)
+  }
+
+  function addInZoomGroup(className, translate) {
+    return this._zoomGroup
+      .append('g')
+      .classed(className, true)
+      .attr('transform', translate)
+  }
+
+  function addInSvgGroup(className, translate) {
+    return this._svg
+      .append('g')
+      .classed(className, true)
+      .attr('transform', translate)
+  }
+
+  function withTitle() {
+    if (this._titleGroup)
+      return null;
+
+    withGroup.call(this, "_titleGroup", 'title-group', 'svg', `translate(0,0)`);
+
+    addText.call(this);
+    addSubText.call(this);
+    addInfo.call(this);
+  }
+
+  function addTooltipContainer() {
+    this._theme;
+    
+    if (!this._tooltip)
+      this._tooltip = this._container
+        .append('div')
+        .classed('ccd3-tooltip', true);
+  }
+
+  function addListener(property, format) {
+
+    this[property]
+
+      .style('cursor', 'pointer')
+
+      .on('mouseover', (e) => {
+        this._tooltip.transition().style('display', 'block');
+        d3.select(e.target).attr('opacity', '0.75');
+      })
+
+      .on('mousemove', (e, d) => {
+        let currentX = `${e.offsetX}px`;
+        let currentY = `${e.offsetY}px`;
+        this._tooltip
+          .html(format(e, d))
+          .transition()
+          .ease(d3.easeCubic)
+          .style('left', currentX)
+          .style('top', currentY);
+      })
+
+      .on('mouseout', (e) => {
+        this._tooltip.transition().style('display', 'none');
+        d3.select(e.target).attr('opacity', '1');
+      });
+  }
+
+  function withTooltip(property, format) {
+    addTooltipContainer.call(this);
+    // 为每个组，添加监听事件
+    addListener.call(this, property, format);
+  }
+
+  let name = 'default',
+    primary1 = '#93b7e3',
+    primary2 = '#59c4e6',
+    primary3 = '#edafda',
+    primary4 = '#516b91',
+    primary5 = '#a5e7f0',
+    primary6 = '#cbb0e3';
+
+  let colorSets = ['#93b7e3', ' #59c4e6', '#edafda', ' #516b91', '#a5e7f0', ' #cbb0e3', ' #3fb1e3', ' #6be6c1', ' #626c91', '#a0a7e6', '#c4ebad', '#96dee8'];
+
+  const theme = {
+    name,
+    primary1,
+    primary2,
+    primary3,
+    primary4,
+    primary5,
+    primary6,
+    colorSets,
+    algorithmBar: {
+
+    },
+    layout: {
+      backgroundColor: '#fff',
+      textColor: '#212121',
+      labelColor: '#eee',
+    },
+    title: {
+      textStyle: {
+        x: '0',
+        y: '0',
+        color: '#516b91',
+        fontSize: '1.5em',
+        fontWeight: '700'
+      },
+      subTextStyle: {
+        color: '#93b7e3',
+        fontSize: '1em',
+        fontWeight: '400'
+      },
+    },
+    axisBottom: {
+      lineColor: '#ccc',
+      textColor: '#999',
+    },
+    axisLeft: {
+      lineColor: '#ccc',
+      textColor: '#999',
+    },
+    tooltip: {
+      textColor: '#212121',
+      backgroundColor: '#ffffffcc',
+      boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
+      border: ' 1px solid #eee',
+    }
+  };
+
   class AlgorithmBar {
-    constructor(domId, option) {
+    constructor(domId, option, theme$1) {
       this._domId = domId;
       this._option = option;
+      this._theme = theme$1 ? theme$1 : theme;
       withLayout.call(this, domId, option);
     }
 
     render() {
       withAxisBottom.call(this);
       withAxisLeft.call(this);
+      withTitle.call(this);
+      withGroup.call(this, '_rectGroup', 'rect-group', 'main');
+
+      this.renderColorScale();
+      this.renderRect();
+    }
+
+    renderColorScale() {
+      const {
+        algorithmBar: { state }
+      } = this._option;
+
+      this._colorScale = d3.scaleOrdinal()
+        .domain(Object.keys(state))
+        .range(Object.values(state));
+    }
+
+    renderRect() {
+      const {
+        algorithmBar: {
+          uniqueKey,
+          stateKey,
+          animation: { duration, ease },
+          on: { click },
+        },
+        axisBottom: {
+          key: xKey,
+        },
+        axisLeft: { key: yKey },
+        tooltip: { format }
+      } = this._option;
+
+      this._rectElements = this._rectGroup
+        .selectAll('rect')
+        .data(this._data, uniqueKey ? d => d[uniqueKey] : uniqueKey)
+        .join(
+          enter => enter.append('rect')
+            .attr('width', this._bandwidth())
+            .attr('y', this._innerHeight)
+            .attr('x', d => this._bottomScale(d[xKey])),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('height', d => this._innerHeight - this._leftScale(d[yKey]))
+        .attr('y', d => this._leftScale(d[yKey]))
+        .attr('x', d => this._bottomScale(d[xKey]))
+        .attr('fill', d => this._colorScale(d[stateKey]))
+        .selection()
+        .on('click', (e, d) => click(e, d, this._data));
+
+      withTooltip.call(this, '_rectElements', format);
     }
   }
 

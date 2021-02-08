@@ -1,8 +1,8 @@
 function scaleBand() {
-  this._axisBottomScale = d3.scaleBand();
+  this._axisLeftScale = d3.scaleBand();
 
   const {
-    axisBottom: {
+    axisLeft: {
       key,
       scale: {
         reverse = false,
@@ -12,22 +12,22 @@ function scaleBand() {
     }
   } = this._option;
 
-  this._axisBottomScale
+  this._axisLeftScale
     .domain(this._data.map(d => d[key]))
-    .range(reverse ? [this._innerWidth, 0] : [0, this._innerWidth])
+    .range(reverse ? [0, this._innerHeight] : [this._innerHeight, 0])
     .paddingInner(paddingInner)
-    .paddingOuter(paddingOuter)
+    .paddingOuter(paddingOuter);
 
   /**
-   * the interface for _axisBottomScale
+   * the interface for _axisLeftScale
    * @param {string || number} d 
    */
-  this._bottomScale = (d) => +this._axisBottomScale(d);
+  this._bottomScale = (d) => +this._axisLeftScale(d);
 
   /**
    * the bandwith for category value
    */
-  this._bandwidth = () => this._axisBottomScale.bandwidth();
+  this._bandwidth = () => this.bandwidth();
 }
 
 export { scaleBand }

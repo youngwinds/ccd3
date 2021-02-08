@@ -5,6 +5,8 @@ import { withGroup } from '../withGroup/index.js'
 
 
 function withTitle() {
+  if (this._titleGroup)
+    return null;
 
   withGroup.call(this, "_titleGroup", 'title-group', 'svg', `translate(0,0)`);
 
