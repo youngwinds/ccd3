@@ -1,0 +1,23 @@
+{
+  "name": "ccd3",
+  "version": "0.1.1",
+  "description": "A data visualization chart library for dynamic interaction",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "keywords": [
+    "d3",
+    "visualization",
+    "svg",
+    "animation",
+    "dynamic",
+    "interaction"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "d3": "^6.5.0",
+    "rollup": "^2.38.5",
+    "rollup-plugin-terser": "^7.0.2"
+  }
+}
