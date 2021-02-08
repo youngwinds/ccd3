@@ -13,8 +13,8 @@ class Factory {
   registerStrategy(chartKey, ChartClass) {
     try {
       if (this._strategies.has(chartKey))
-        throw new Error(`The [${chartkey}] has been registered.\nPlease change the name and re register.`)
-      this._strategies.set(chartKey, new Strategy(ChartClass))
+        throw new Error(`The [${chartkey}] has been registered.Please change the name and re register.`);
+      this._strategies.set(chartKey, new Strategy(ChartClass));
       return this;
     } catch (e) {
       console.error(e);
@@ -31,10 +31,10 @@ class Factory {
       const { name: chartUniqueKey } = chartOption;
 
       if (typeof chartUniqueKey !== "string")
-        throw new Error("The [name] attribute must be included in option.\n[name] is used to indicate a chart.")
+        throw new Error("The [name] attribute must be included in option.[name] is used to indicate a chart.");
 
       if (!this._strategies.has(chartUniqueKey))
-        throw new Error(`The [${chartUniqueKey}] chart doesn't exist in the chart factory.`)
+        throw new Error(`The [${chartUniqueKey}] chart doesn't exist in the chart factory.`);
 
       return this._strategies.get(chartUniqueKey).init(domId, chartOption);
     } catch (e) {
