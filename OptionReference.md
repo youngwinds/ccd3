@@ -2,7 +2,56 @@
 
 # CCD3 Option Reference
 
+ccd3 has 4 kind of chart configuration.
+
+
+
+[Common Configuration](#Common Configuration)
+
+The `Common Configuration` is valid for each chart.
+
+1. [name](#option.name)
+2. [layout](#option.layout)
+3. [title](#option.title)
+4. [tooltip](#option.tooltip)
+5. [axisBottom](#option.axisBottom)
+6. [axisLeft](#option.axisLeft)
+
+
+
+[Scale Configuration](#Scale Configuration)
+
+In addition, `Scale Configuration`  are listed independently.For each scale, there are some additional configuration items.
+
+1. [scaleBand](#scaleBand)
+2. [scaleLinear](#scaleLinear)
+
+
+
+[Independent Configuration](#Independent Configuration)
+
+The `Independent Configuration` is valid for single chart.
+
+1. [algorithmBar](#algorithmBar)
+
+[Theme configuration](#Theme configuration)
+
+
+
+The `Theme configuration` is valid for each chart.
+
+1. [lightBlue](#lightBlue)
+
 ## Common Configuration
+
+The `Common Configuration` is valid for each chart.
+
+1. [name](#option.name)
+2. [layout](#option.layout)
+3. [title](#option.title)
+4. [tooltip](#option.tooltip)
+5. [axisBottom](#option.axisBottom)
+6. [axisLeft](#option.axisLeft)
 
 ### option.name
 
@@ -84,6 +133,10 @@ const option = {
                 str += `${key} : ${data[key]} <br/>`
             }
             return str;
+        },
+        transition: {
+            duration: 300,
+            ease: d3.easeBackOut
         }
     }
 }
@@ -91,9 +144,11 @@ const option = {
 
 **detail**
 
-| name           | type     | sample value  | description                                                  |
-| -------------- | -------- | ------------- | ------------------------------------------------------------ |
-| tooltip.format | function | ()=>"tooltip" | Passing event object and clicking object‘s value, to format tooltip. |
+| name                | type     | sample value                   | description                                                  |
+| ------------------- | -------- | ------------------------------ | ------------------------------------------------------------ |
+| tooltip.format      | function | ()=>"tooltip"                  | Passing event object and clicking object‘s value, to format tooltip. |
+| transition.duration | number   | custom number,like `1000`      | Animation duration time                                      |
+| transition.ease     | d3's api | d3.ease\*,like `d3.easeLinear` | Animation ease effect                                        |
 
 ### option.axisBottom
 
@@ -103,6 +158,7 @@ const option = {
 const option = {
     axisBottom: {
         key: 'name',
+        grid: false,
         scale: {
             name: 'scaleBand'
         },
@@ -118,10 +174,11 @@ const option = {
 
 | name                | type     | sample value                   | description                                                  |
 | ------------------- | -------- | ------------------------------ | ------------------------------------------------------------ |
-| key                 | string   | custom string,like `name`      | corresponding to data.                                       |
+| key                 | string   | custom string,like `name`      | Corresponding to data.                                       |
+| grid                | boolean  | `true` or `false`              | Turn on or off the axis grid.                                |
 | scale.name          | string   | `scaleBand` ,`scaleLinear`     | Built in scales that match the properties of the corresponding data |
 | transition.duration | number   | custom number,like `1000`      | Animation duration time                                      |
-| transition.duration | d3's api | d3.ease\*,like `d3.easeLinear` | Animation ease effect                                        |
+| transition.ease     | d3's api | d3.ease\*,like `d3.easeLinear` | Animation ease effect                                        |
 
 **optional scale name**
 
@@ -136,6 +193,7 @@ const option = {
 const option = {
     axisLeft: {
         key: 'value',
+        grid: false,
         scale: {
             name: 'scaleLinear'
         },
@@ -151,7 +209,8 @@ const option = {
 
 | name                | type     | sample value                   | description                                                  |
 | ------------------- | -------- | ------------------------------ | ------------------------------------------------------------ |
-| key                 | string   | custom string,like `name`      | corresponding to data.                                       |
+| key                 | string   | custom string,like `name`      | Corresponding to data.                                       |
+| grid                | boolean  | `true` or `false`              | Turn on or off the axis grid.                                |
 | scale.name          | string   | `scaleBand` ,`scaleLinear`     | Built in scales that match the properties of the corresponding data |
 | transition.duration | number   | custom number,like `1000`      | Animation duration time                                      |
 | transition.duration | d3's api | d3.ease\*,like `d3.easeLinear` | Animation ease effect                                        |
@@ -161,15 +220,18 @@ const option = {
 1. scaleBand
 2. scaleLinear
 
-## scale configuration
+## Scale Configuration
 
-For each scale, there are some additional configuration items.
+`Scale Configuration`  are listed independently.For each scale, there are some additional configuration items.
+
+1. [scaleBand](#scaleBand)
+2. [scaleLinear](#scaleLinear)
 
 ### scaleBand
 
 When name is `scaleBand`,like this demo.
 
-There are three optional options:
+There are 3 optional options:
 
 1. `round ` which default to false
 2. `paddingInner ` which default to 0.5
@@ -179,6 +241,7 @@ There are three optional options:
 const option = {
     axisBottom:{
         key: 'name',
+        grid: true,
         scale: {
             name: 'scaleBand',
             reverse: false,
@@ -193,7 +256,7 @@ const option = {
 
 When name is `scaleLinear`,like this demo.
 
-There are three optional options:
+There are 3 optional options:
 
 1. `extent ` which default to false
 2. `reverse ` which default to false
@@ -203,17 +266,22 @@ There are three optional options:
 const option = {
     leftAxis: {
         key: 'value',
+        grid: true,
         scale: {
             name: 'scaleLinear',
             extent: false,
             reverse: false,
-            nice: true,
+            nice: true
         }
     }
 }
 ```
 
-## Independent configuration
+## Independent Configuration
+
+The `Independent Configuration` is valid for single chart.
+
+1. [algorithmBar](#algorithmBar)
 
 ### algorithmBar
 
@@ -235,9 +303,72 @@ const option = {
         },
         animation: {
             duration: 1000,
-            ease: d3.easeLinear
+            ease: d3.easeBounce
         }
+    }
+}
+```
+
+## Theme Configuration
+
+The `Theme configuration` is valid for each chart.
+
+1. [lightBlue](#lightBlue)
+
+### lightBlue
+
+```js
+const lightBlue = {
+  name: 'lightBlue',
+  primary1: '#93b7e3',
+  primary2: '#59c4e6',
+  primary3: '#edafda',
+  primary4: '#516b91',
+  primary5: '#a5e7f0',
+  primary6: '#cbb0e3',
+  colorSets: ['#93b7e3', ' #59c4e6', '#edafda', ' #516b91', '#a5e7f0', ' #cbb0e3', ' #3fb1e3', ' #6be6c1', ' #626c91', '#a0a7e6', '#c4ebad', '#96dee8'],
+  layout: {
+    backgroundColor: '#fff',
+    textColor: '#212121',
+    labelColor: '#eee',
+  },
+  title: {
+    textStyle: {
+      x: '0',
+      y: '0',
+      color: '#516b91',
+      fontSize: '1.5em',
+      fontWeight: '700'
     },
+    subTextStyle: {
+      x: '0',
+      y: '0',
+      color: '#93b7e3',
+      fontSize: '1em',
+      fontWeight: '400'
+    },
+  },
+  axisBottom: {
+    tickColor: '#eee',
+    lineColor: '#ccc',
+    textColor: '#999',
+  },
+  axisLeft: {
+    lineColor: '#ccc',
+    textColor: '#999',
+  },
+  tooltip: {
+    pointerEvents: 'none',
+    textColor: '#212121',
+    backgroundColor: '#ffffffcc',
+    boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
+    border: ' 1px solid #eee',
+    borderRadius: '5px',
+    padding: '0.75rem 1rem',
+    whiteSpace: 'no-warp',
+    zIndex: '3080',
+    position: 'absolute',
+  }
 }
 ```
 
