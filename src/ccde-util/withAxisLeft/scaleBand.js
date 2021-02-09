@@ -22,12 +22,12 @@ function scaleBand() {
    * the interface for _axisLeftScale
    * @param {string || number} d 
    */
-  this._bottomScale = (d) => +this._axisLeftScale(d);
+  this._leftScale = (d) => +this._axisLeftScale(d);
 
   /**
    * the bandwith for category value
    */
-  this._bandwidth = () => this.bandwidth();
+  this._bandwidth = () => this._axisLeftScale.bandwidth();
 }
 
 export { scaleBand }

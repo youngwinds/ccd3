@@ -1,0 +1,6 @@
+export * from './withAxisBottom/index.js'
+export * from './withAxisLeft/index.js'
+export * from './withGroup/index.js'
+export * from './withLayout/index.js'
+export * from './withTitle/index.js'
+export * from './withTooltip/index.js'

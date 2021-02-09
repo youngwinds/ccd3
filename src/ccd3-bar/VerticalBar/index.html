@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="dom" style="width:970px;height:600px;"></div>
+
+  <script src="../../../node_modules/d3/dist/d3.js"></script>
+  <script type="module">
+
+    import { VerticalBar } from './index.js';
+    import { option } from './option.js';
+
+    const bar = new VerticalBar('dom', option);
+
+    const data = [
+      { name: 'apple', value: 150, state: 'start' },
+      { name: 'banana', value: 200, state: 'start' },
+      { name: 'orange', value: 120, state: 'start' },
+      { name: 'mango', value: 100, state: 'start' },
+      { name: 'pineapple', value: 210, state: 'start' },
+      { name: 'watermelon', value: 160, state: 'start' },
+      { name: 'pitaya', value: 331, state: 'start' },
+      { name: 'strawberry', value: 105, state: 'start' }
+    ];
+
+    bar._data = data;
+    bar.render()
+
+    setTimeout(() => {
+      data.sort((a, b) => b.value - a.value);
+      bar.render();
+    }, 1000)
+  </script>
+</body>
+
+</html>

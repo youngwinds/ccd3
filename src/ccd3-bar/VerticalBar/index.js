@@ -9,7 +9,8 @@ import {
 
 import { lightBlue as defaultTheme } from '../../ccd3-theme/lightBlue.js';
 
-class AlgorithmBar {
+
+class VerticalBar {
   constructor(domId, option, theme) {
     this._domId = domId;
     this._option = option;
@@ -23,25 +24,13 @@ class AlgorithmBar {
     withTitle.call(this);
     withGroup.call(this, '_rectGroup', 'rect-group', 'main');
 
-    this.renderColorScale();
     this.renderRect();
-  }
-
-  renderColorScale() {
-    const {
-      algorithmBar: { state }
-    } = this._option;
-
-    this._colorScale = d3.scaleOrdinal()
-      .domain(Object.keys(state))
-      .range(Object.values(state));
   }
 
   renderRect() {
     const {
-      algorithmBar: {
+      verticalBar: {
         uniqueKey,
-        stateKey,
         animation: { duration, ease },
         on: { click },
       },
@@ -51,6 +40,10 @@ class AlgorithmBar {
       axisLeft: { key: yKey },
       tooltip: { format }
     } = this._option;
+
+    const {
+      primary1
+    } = this._theme;
 
     this._rectElements = this._rectGroup
       .selectAll('rect')
@@ -69,7 +62,7 @@ class AlgorithmBar {
       .attr('height', d => this._innerHeight - this._leftScale(d[yKey]))
       .attr('y', d => this._leftScale(d[yKey]))
       .attr('x', d => this._bottomScale(d[xKey]))
-      .attr('fill', d => this._colorScale(d[stateKey]))
+      .attr('fill', primary1)
       .selection()
       .on('click', (e, d) => click(e, d, this._data));
 
@@ -77,4 +70,4 @@ class AlgorithmBar {
   }
 }
 
-export { AlgorithmBar }
+export { VerticalBar }

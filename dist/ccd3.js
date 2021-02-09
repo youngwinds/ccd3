@@ -109,137 +109,6 @@
     factory.registerStrategy(chartKey, chartClass);
   };
 
-  /**
-   * 添加布局需要的配置项属性到图表
-   */
-  function addOptionProperty() {
-    const {
-      name,
-      layout: { margin, zoom }
-    } = this._option;
-
-    this._name = name;
-    this._margin = {
-      top: margin.top,
-      right: margin.right,
-      bottom: margin.bottom,
-      left: margin.left
-    };
-    this._zoom = zoom;
-  }
-
-  /**
-   * 添加一个Div作为图表的基本容器，因此，图表容器与用户提供的图表容器松耦合。
-   * tips：主要是用户的容器，可能会加上padding甚至是加上边框或者滚动条。所以必须要让这2个容器松耦。
-   */
-  function addContainer() {
-    const {
-      layout: {
-        backgroundColor = '#fff',
-        color = '#212121'
-      }
-    } = this._theme;
-
-    this._container = d3.select(`#${this._domId}`)
-      .append('div')
-      .attr('id', `${this._domId}Container`)
-      .style('background-color', backgroundColor)
-      .style('color', color)
-      .style('position', 'relative')
-      .style('width', '100%')
-      .style('height', '100%');
-  }
-
-  /**
-   * 添加额外的基本属性，用户布局。
-   */
-  function addBasicProperty() {
-    this._width = this._container.node().clientWidth;
-    this._height = this._container.node().clientHeight;
-
-    this._innerHeight = this._height - this._margin.top - this._margin.bottom;
-    this._innerWidth = this._width - this._margin.left - this._margin.right;
-
-    this._viewBox = `0 0 ${this._width} ${this._height}`;
-  }
-
-  /**
-   * 添加svg画布，我们约定一个图表仅对应svg。
-   */
-  function addSvg() {
-    this._svg = this._container
-      .append('svg')
-      .attr('id', `${this._domId}Svg`)
-      .attr('viewBox', this._viewBox);
-  }
-
-  function addZoom() {
-    this._svg
-      .call(
-        d3
-          .zoom()
-          .on('zoom', (event) => {
-            this._zoomGroup.attr('transform',
-              `translate(${event.transform.x},${event.transform.y}) scale(${event.transform.k})`);
-          })
-      );
-  }
-
-  /**
-   * 添加缩放
-   */
-
-  function withZoom() {
-    const {
-      layout: { zoom = false }
-    } = this._option;
-
-    if (zoom) {
-      this._zoomGroup = this._svg.append('g')
-        .attr('id', `${this._domId}ZoomGroup`)
-        .attr('class', `zoom-group`);
-      addZoom.call(this);
-      return this._zoomGroup.append('g');
-    } else {
-      return this._svg.append('g');
-    }
-  }
-
-  /**
-   * 将所有图表进行抽象，将图表抽象为主要视图部分与辅助视图部分。
-   *
-   * 为每一个图表添加一个mainGroup容器，以存放图表的主要部分！
-   *
-   * 将margin作用到mainGroup容器中，以margin确定实现图表的边距。
-   *
-   * mainGroup容器内部推荐添加主要的视图。
-   *
-   * mainGroup容器外部推荐添加图例、坐标轴等非主要的辅助视图。
-   */
-
-  function addMain() {
-
-    // 统一图表的缩放在svg与mainGroup之间，以此实现Zoom功能的全图表通用。
-    this._mainGroup = withZoom.call(this);
-
-    this._mainGroup.attr('id', `${this._domId}MainGroup`)
-      .attr('transform', `translate(${this._margin.left},${this._margin.top})`);
-  }
-
-  /**
-   * 每个图表必须在构造函数中调用withLayout,进行图表容器的布局初始化！
-   * 初始化操作仅允许调用一次！
-   * @param {string} domId 
-   * @param {object} option 
-   */
-  function withLayout() {
-    addOptionProperty.call(this);
-    addContainer.call(this);
-    addBasicProperty.call(this);
-    addSvg.call(this);
-    addMain.call(this);
-  }
-
   function scaleBand() {
     this._axisBottomScale = d3.scaleBand();
 
@@ -416,12 +285,12 @@
      * the interface for _axisLeftScale
      * @param {string || number} d 
      */
-    this._bottomScale = (d) => +this._axisLeftScale(d);
+    this._leftScale = (d) => +this._axisLeftScale(d);
 
     /**
      * the bandwith for category value
      */
-    this._bandwidth = () => this.bandwidth();
+    this._bandwidth = () => this._axisLeftScale.bandwidth();
   }
 
   function scaleLinear$1() {
@@ -551,6 +420,192 @@
   }
 
   /**
+   * 基于父容器添加新的group，并为其设置类名、和transform。
+   * 现在组的规模较小，
+   * 如果规模持续扩大，
+   * 那么未来考虑进行代码优化，
+   * @param {string} propertyName 属性名称
+   * @param {string} className 样式类名
+   * @param {string} parentGroupName 待添加到的父容器名称（个人自定义）
+   * @param {string} translate transofrm样式
+   */
+
+  function withGroup(propertyName, className, parentGroupName, translate) {
+
+    if (typeof this[propertyName] !== "undefined")
+      return null;
+
+    switch (parentGroupName) {
+      case 'main': {
+        this[propertyName] = addInMainGroup.call(this, className, translate);
+        break;
+      }    case 'zoom': {
+        this[propertyName] = addInZoomGroup.call(this, className, translate);
+        break;
+      }    case 'svg': {
+        this[propertyName] = addInSvgGroup.call(this, className, translate);
+        break;
+      }    default: {
+        this[propertyName] = addInMainGroup.call(this, className, translate);
+        break;
+      }  }
+    return null;
+  }
+
+
+  function addInMainGroup(className, translate) {
+    return this._mainGroup
+      .append('g')
+      .classed(className, true)
+      .attr('transform', translate)
+  }
+
+  function addInZoomGroup(className, translate) {
+    return this._zoomGroup
+      .append('g')
+      .classed(className, true)
+      .attr('transform', translate)
+  }
+
+  function addInSvgGroup(className, translate) {
+    return this._svg
+      .append('g')
+      .classed(className, true)
+      .attr('transform', translate)
+  }
+
+  /**
+   * 添加布局需要的配置项属性到图表
+   */
+  function addOptionProperty() {
+    const {
+      name,
+      layout: { margin, zoom }
+    } = this._option;
+
+    this._name = name;
+    this._margin = {
+      top: margin.top,
+      right: margin.right,
+      bottom: margin.bottom,
+      left: margin.left
+    };
+    this._zoom = zoom;
+  }
+
+  /**
+   * 添加一个Div作为图表的基本容器，因此，图表容器与用户提供的图表容器松耦合。
+   * tips：主要是用户的容器，可能会加上padding甚至是加上边框或者滚动条。所以必须要让这2个容器松耦。
+   */
+  function addContainer() {
+    const {
+      layout: {
+        backgroundColor = '#fff',
+        color = '#212121'
+      }
+    } = this._theme;
+
+    this._container = d3.select(`#${this._domId}`)
+      .append('div')
+      .attr('id', `${this._domId}Container`)
+      .style('background-color', backgroundColor)
+      .style('color', color)
+      .style('position', 'relative')
+      .style('width', '100%')
+      .style('height', '100%');
+  }
+
+  /**
+   * 添加额外的基本属性，用户布局。
+   */
+  function addBasicProperty() {
+    this._width = this._container.node().clientWidth;
+    this._height = this._container.node().clientHeight;
+
+    this._innerHeight = this._height - this._margin.top - this._margin.bottom;
+    this._innerWidth = this._width - this._margin.left - this._margin.right;
+
+    this._viewBox = `0 0 ${this._width} ${this._height}`;
+  }
+
+  /**
+   * 添加svg画布，我们约定一个图表仅对应svg。
+   */
+  function addSvg() {
+    this._svg = this._container
+      .append('svg')
+      .attr('id', `${this._domId}Svg`)
+      .attr('viewBox', this._viewBox);
+  }
+
+  function addZoom() {
+    this._svg
+      .call(
+        d3
+          .zoom()
+          .on('zoom', (event) => {
+            this._zoomGroup.attr('transform',
+              `translate(${event.transform.x},${event.transform.y}) scale(${event.transform.k})`);
+          })
+      );
+  }
+
+  /**
+   * 添加缩放
+   */
+
+  function withZoom() {
+    const {
+      layout: { zoom = false }
+    } = this._option;
+
+    if (zoom) {
+      this._zoomGroup = this._svg.append('g')
+        .attr('id', `${this._domId}ZoomGroup`)
+        .attr('class', `zoom-group`);
+      addZoom.call(this);
+      return this._zoomGroup.append('g');
+    } else {
+      return this._svg.append('g');
+    }
+  }
+
+  /**
+   * 将所有图表进行抽象，将图表抽象为主要视图部分与辅助视图部分。
+   *
+   * 为每一个图表添加一个mainGroup容器，以存放图表的主要部分！
+   *
+   * 将margin作用到mainGroup容器中，以margin确定实现图表的边距。
+   *
+   * mainGroup容器内部推荐添加主要的视图。
+   *
+   * mainGroup容器外部推荐添加图例、坐标轴等非主要的辅助视图。
+   */
+
+  function addMain() {
+
+    // 统一图表的缩放在svg与mainGroup之间，以此实现Zoom功能的全图表通用。
+    this._mainGroup = withZoom.call(this);
+
+    this._mainGroup.attr('id', `${this._domId}MainGroup`)
+      .attr('transform', `translate(${this._margin.left},${this._margin.top})`);
+  }
+
+  /**
+   * 每个图表必须在构造函数中调用withLayout,进行图表容器的布局初始化！
+   * 初始化操作仅允许调用一次！
+   * @param {string} domId 
+   * @param {object} option 
+   */
+  function withLayout() {
+    addOptionProperty.call(this);
+    addContainer.call(this);
+    addBasicProperty.call(this);
+    addSvg.call(this);
+    addMain.call(this);
+  }
+
+  /**
    * 添加主标题
    */
   function addText() {
@@ -654,61 +709,6 @@
    */
   function addInfo() {
 
-  }
-
-  /**
-   * 基于父容器添加新的group，并为其设置类名、和transform。
-   * 现在组的规模较小，
-   * 如果规模持续扩大，
-   * 那么未来考虑进行代码优化，
-   * @param {string} propertyName 属性名称
-   * @param {string} className 样式类名
-   * @param {string} parentGroupName 待添加到的父容器名称（个人自定义）
-   * @param {string} translate transofrm样式
-   */
-
-  function withGroup(propertyName, className, parentGroupName, translate) {
-
-    if (typeof this[propertyName] !== "undefined")
-      return null;
-
-    switch (parentGroupName) {
-      case 'main': {
-        this[propertyName] = addInMainGroup.call(this, className, translate);
-        break;
-      }    case 'zoom': {
-        this[propertyName] = addInZoomGroup.call(this, className, translate);
-        break;
-      }    case 'svg': {
-        this[propertyName] = addInSvgGroup.call(this, className, translate);
-        break;
-      }    default: {
-        this[propertyName] = addInMainGroup.call(this, className, translate);
-        break;
-      }  }
-    return null;
-  }
-
-
-  function addInMainGroup(className, translate) {
-    return this._mainGroup
-      .append('g')
-      .classed(className, true)
-      .attr('transform', translate)
-  }
-
-  function addInZoomGroup(className, translate) {
-    return this._zoomGroup
-      .append('g')
-      .classed(className, true)
-      .attr('transform', translate)
-  }
-
-  function addInSvgGroup(className, translate) {
-    return this._svg
-      .append('g')
-      .classed(className, true)
-      .attr('transform', translate)
   }
 
   function withTitle() {
@@ -917,7 +917,137 @@
   factory
     .registerStrategy('algorithmBar', AlgorithmBar);
 
+  class HorizontalBar {
+    constructor(domId, option, theme) {
+      this._domId = domId;
+      this._option = option;
+      this._theme = theme ? theme : lightBlue;
+      withLayout.call(this, domId, option);
+    }
+
+    render() {
+      withAxisBottom.call(this);
+      withAxisLeft.call(this);
+      withTitle.call(this);
+      withGroup.call(this, '_rectGroup', 'rect-group', 'main');
+
+      this.renderRect();
+    }
+
+    renderRect() {
+      const {
+        horizontalBar: {
+          uniqueKey,
+          animation: { duration, ease },
+          on: { click },
+        },
+        axisBottom: {
+          key: xKey,
+        },
+        axisLeft: { key: yKey },
+        tooltip: { format }
+      } = this._option;
+
+      console.log(xKey);
+      const {
+        primary1
+      } = this._theme;
+
+      this._rectElements = this._rectGroup
+        .selectAll('rect')
+        .data(this._data, uniqueKey ? d => d[uniqueKey] : uniqueKey)
+        .join(
+          enter => enter.append('rect')
+            .attr('height', this._bandwidth())
+            .attr('width', 0)
+            .attr('y', d => this._leftScale(d[yKey])),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('height', this._bandwidth())
+        .attr('width', d => this._bottomScale(d[xKey]))
+        .attr('y', d => this._leftScale(d[yKey]))
+        .attr('fill', primary1)
+        .selection()
+        .on('click', (e, d) => click(e, d, this._data));
+
+      withTooltip.call(this, '_rectElements', format);
+    }
+  }
+
+  class VerticalBar {
+    constructor(domId, option, theme) {
+      this._domId = domId;
+      this._option = option;
+      this._theme = theme ? theme : lightBlue;
+      withLayout.call(this, domId, option);
+    }
+
+    render() {
+      withAxisBottom.call(this);
+      withAxisLeft.call(this);
+      withTitle.call(this);
+      withGroup.call(this, '_rectGroup', 'rect-group', 'main');
+
+      this.renderRect();
+    }
+
+    renderRect() {
+      const {
+        verticalBar: {
+          uniqueKey,
+          animation: { duration, ease },
+          on: { click },
+        },
+        axisBottom: {
+          key: xKey,
+        },
+        axisLeft: { key: yKey },
+        tooltip: { format }
+      } = this._option;
+
+      const {
+        primary1
+      } = this._theme;
+
+      this._rectElements = this._rectGroup
+        .selectAll('rect')
+        .data(this._data, uniqueKey ? d => d[uniqueKey] : uniqueKey)
+        .join(
+          enter => enter.append('rect')
+            .attr('width', this._bandwidth())
+            .attr('y', this._innerHeight)
+            .attr('x', d => this._bottomScale(d[xKey])),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('height', d => this._innerHeight - this._leftScale(d[yKey]))
+        .attr('y', d => this._leftScale(d[yKey]))
+        .attr('x', d => this._bottomScale(d[xKey]))
+        .attr('fill', primary1)
+        .selection()
+        .on('click', (e, d) => click(e, d, this._data));
+
+      withTooltip.call(this, '_rectElements', format);
+    }
+  }
+
+  /**
+   * register all charts with ccd3
+   */
+  factory
+    .registerStrategy('horizontalBar', HorizontalBar)
+    .registerStrategy('verticalBar', VerticalBar);
+
   exports.AlgorithmBar = AlgorithmBar;
+  exports.HorizontalBar = HorizontalBar;
+  exports.VerticalBar = VerticalBar;
   exports.init = init;
   exports.register = register;
 
