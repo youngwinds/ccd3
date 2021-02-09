@@ -272,33 +272,71 @@ const option = {
 
 The `Independent Configuration` is valid for single chart.
 
+### **ccd3-algorithem**
+
 1. [algorithmBar](#algorithmBar)
 
-### algorithmBar
+   ```js
+   const option = {
+       algorithmBar: {
+           uniqueKey: 'name',
+           stateKey: 'state',
+           state: {
+               active: '#c4ebad',
+               start: '#93b7e3',
+               exchange: '#edafda',
+               end: '#6be6c1',
+           },
+           on: {
+               click: (event, value, data) => { console.log(event, value, data) }
+           },
+           animation: {
+               duration: 1000,
+               ease: d3.easeBounce
+           }
+       }
+   }
+   ```
 
-**demo**
+### **ccd3-bar**
 
-```js
-const option = {
-    algorithmBar: {
-        uniqueKey: 'name',
-        stateKey: 'state',
-        state: {
-            active: '#c4ebad',
-            start: '#93b7e3',
-            exchange: '#edafda',
-            end: '#6be6c1',
-        },
-        on: {
-            click: (event, value, data) => { console.log(event, value, data) }
-        },
-        animation: {
-            duration: 1000,
-            ease: d3.easeBounce
-        }
-    }
-}
-```
+1. horizontalBar
+
+   ```js
+   const option = {
+       name: 'horizontalBar',
+       horizontalBar: {
+           uniqueKey: 'name',
+           on: {
+               click: (event, value, data) => { console.log(event, value, data) }
+           },
+           animation: {
+               duration: 1000,
+               ease: d3.easeBounce
+           }
+       }
+   }
+   ```
+
+2. verticalBar
+
+   ```js
+   const option={
+       name: 'verticalBar',
+       verticalBar: {
+           uniqueKey: 'name',
+           on: {
+               click: (event, value, data) => { console.log(event, value, data) }
+           },
+           animation: {
+               duration: 1000,
+               ease: d3.easeBounce
+           }
+       }
+   }
+   ```
+
+
 
 ## Theme Configuration
 
