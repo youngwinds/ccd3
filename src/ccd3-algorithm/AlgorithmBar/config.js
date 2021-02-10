@@ -72,5 +72,14 @@ const option = {
     }
   }
 }
-
-export { option }
+const data = [
+  { name: 'apple', value: 150, state: 'start' },
+  { name: 'banana', value: 200, state: 'start' },
+  { name: 'orange', value: 120, state: 'start' },
+  { name: 'mango', value: 100, state: 'start' },
+  { name: 'pineapple', value: 210, state: 'start' },
+  { name: 'watermelon', value: 160, state: 'start' },
+  { name: 'pitaya', value: 331, state: 'start' },
+  { name: 'strawberry', value: 105, state: 'start' }
+];
+export { option, data }
