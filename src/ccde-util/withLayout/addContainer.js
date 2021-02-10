@@ -5,7 +5,7 @@
 function addContainer() {
   const {
     layout: {
-      backgroundColor = '#fff',
+      backgroundColor ='red',
       color = '#212121'
     }
   } = this._theme;

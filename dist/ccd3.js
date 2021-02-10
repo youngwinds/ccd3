@@ -35,12 +35,12 @@
      * Based on the same Strategy.
      * @param {string} domId dom Id
      * @param {object} chartOption dom's option
-     * @param {object} theme dom's theme config
+     * @param {object} chartTheme dom's theme config
      */
-    init(domId, chartOption, theme) {
+    init(domId, chartOption, chartTheme) {
       const ChartClass = this._Class;
-      const chart = new ChartClass(domId, chartOption);
-      return [chart, (data, option) => setState.call(chart, data, option, theme)]
+      const chart = new ChartClass(domId, chartOption, chartTheme);
+      return [chart, (data, option, theme) => setState.call(chart, data, option, theme)]
     }
   }
 
@@ -500,7 +500,7 @@
   function addContainer() {
     const {
       layout: {
-        backgroundColor = '#fff',
+        backgroundColor ='red',
         color = '#212121'
       }
     } = this._theme;
@@ -848,6 +848,7 @@
       this._domId = domId;
       this._option = option;
       this._theme = theme ? theme : lightBlue;
+      console.log(theme,lightBlue);
       withLayout.call(this, domId, option);
     }
 
@@ -911,11 +912,193 @@
     }
   }
 
+  class AlgorithmTree {
+    constructor(domId, option, theme) {
+      this._domId = domId;
+      this._option = option;
+      this._theme = theme ? theme : lightBlue;
+      withLayout.call(this, domId, option);
+    }
+
+    render() {
+      withTitle.call(this);
+      withGroup.call(this, '_pathGroup', 'path-group', 'main');
+      withGroup.call(this, '_nodeGroup', 'node-group', 'main');
+      withGroup.call(this, '_textGroup', 'text-group', 'main');
+
+      this.renderColorScale();
+      this.renderData();
+      this.renderScale();
+      this.renderPath();
+      this.renderNode();
+      this.renderText();
+    }
+
+    renderColorScale() {
+      const {
+        algorithmTree: { state }
+      } = this._option;
+
+      this._colorScale = d3.scaleOrdinal()
+        .domain(Object.keys(state))
+        .range(Object.values(state));
+    }
+
+    renderData() {
+      const {
+        algorithmTree: { valueKey, childrenKey },
+      } = this._option;
+
+      const root = d3.hierarchy(this._data, d => d[childrenKey]);
+
+      this._rootData = d3.tree()
+        .size([this._innerWidth, this._innerHeight])
+        // .separation((a, b) => a.parent == b.parent ? 1 : 2)
+        (root);
+    }
+
+    renderScale() {
+      const {
+        algorithmTree: {
+          valueKey,
+          node: { radiusExtent }
+        }
+      } = this._option;
+
+      let max = -Infinity, min = Infinity;
+      const dfs = (node) => {
+        if (!node) return;
+        max = Math.max(max, node[valueKey]);
+        min = Math.min(min, node[valueKey]);
+        node.children
+          ? node.children.forEach(d => dfs(d))
+          : null;
+      };
+      dfs(this._data);
+      this._valueScale = d3.scaleLinear()
+        .domain([min, max])
+        .range(radiusExtent);
+    }
+
+    renderPath() {
+      const {
+        algorithmTree: {
+          uniqueKey,
+          stateKey,
+          animation: { duration, ease }
+        },
+      } = this._option;
+
+
+      this._pathGroupElements = this._pathGroup
+        .selectAll('path')
+        .data(this._rootData.links(), d => d.target.data[uniqueKey])
+        .join(
+          enter => enter.append('path')
+            .attr('d', d => {
+              return d3.linkVertical()
+                .x(d => d.x)
+                .y(d => d.y)
+                ({ source: d.source, target: d.source })
+            })
+
+            .selection(),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('stroke', d => this._colorScale(d.target.data[stateKey]))
+        .attr('fill', 'none')
+        .attr("d", d3.linkVertical()
+          .x(d => d.x)
+          .y(d => d.y));
+    }
+
+    renderNode() {
+      const {
+        algorithmTree: {
+          uniqueKey,
+          nodeKey,
+          childrenKey,
+          valueKey,
+          stateKey,
+          animation: { duration, ease },
+        },
+        tooltip: { format }
+      } = this._option;
+
+      this._nodeGroupElements = this._nodeGroup
+        .selectAll('circle')
+        .data(this._rootData.descendants(), d => d.data[uniqueKey])
+        .join(
+          enter => enter.append('circle')
+            .attr("transform", d => `translate(${d.x}, ${d.y})`),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('fill', d => this._colorScale(d.data[stateKey]))
+        .attr('r', d => this._valueScale(d.data[valueKey]))
+        .attr("transform", d => `translate(${d.x}, ${d.y})`)
+        .selection()
+        .style('cursor', 'pointer')
+        .classed('subtree-hidden', d => d.data[`_${childrenKey}`] ? true : false)
+        .classed('leaf-node', d => d.data[childrenKey] ? false : true);
+
+      withTooltip.call(this, '_nodeGroupElements', format ? format : (e, d) => {
+        return `${d.ancestors().map(d => d.data[nodeKey]).reverse().join("-><br/>")} : <strong>${d3.format(",d")(d.data[valueKey])} </strong>`;
+      });
+    }
+
+    renderText() {
+      const {
+        algorithmTree: {
+          nodeKey,
+          valueKey,
+          uniqueKey,
+          animation: { duration, ease },
+        },
+        tooltip: { format }
+      } = this._option;
+
+      this._textGroupElements = this._textGroup
+        .selectAll('text')
+        .data(this._rootData.descendants(), d => d.data[uniqueKey])
+        .join(
+          enter => enter.append('text')
+            .attr('transform', d => `translate(${d.x}, ${d.y}) rotate(90)`),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('font-size', d => this._valueScale(d.data[valueKey]))
+        .attr('dy', '0.31em')
+        .attr('dx', '10')
+        .attr('transform', d => `translate(${d.x}, ${d.y}) rotate(90)`)
+        .attr("dx", d => d.children ? '-1em' : '1em')
+        .attr("text-anchor", d => d.children ? "end" : "start")
+        .selection()
+        .html(d => d.data[nodeKey])
+        .style('cursor', 'pointer');
+
+      withTooltip.call(this, '_textGroupElements', format ? format : (e, d) => {
+        return `${d.ancestors().map(d => d.data[nodeKey]).reverse().join("-><br/>")} : <strong>${d3.format(",d")(d.data[valueKey])} </strong>`;
+      });
+    }
+  }
+
   /**
    * register all charts with ccd3
    */
   factory
-    .registerStrategy('algorithmBar', AlgorithmBar);
+    .registerStrategy('algorithmBar', AlgorithmBar)
+    .registerStrategy('algorithmTree', AlgorithmTree);
 
   class HorizontalBar {
     constructor(domId, option, theme) {
@@ -1045,9 +1228,368 @@
     .registerStrategy('horizontalBar', HorizontalBar)
     .registerStrategy('verticalBar', VerticalBar);
 
+  class HorizontalTree {
+    constructor(domId, option, theme) {
+      this._domId = domId;
+      this._option = option;
+      this._theme = theme ? theme : lightBlue;
+      withLayout.call(this, domId, option);
+    }
+
+    render() {
+      withTitle.call(this);
+      withGroup.call(this, '_pathGroup', 'path-group', 'main');
+      withGroup.call(this, '_nodeGroup', 'node-group', 'main');
+      withGroup.call(this, '_textGroup', 'text-group', 'main');
+
+      this.renderData();
+      this.renderScale();
+      this.renderPath();
+      this.renderNode();
+      this.renderText();
+    }
+
+    renderData() {
+      const {
+        horizontalTree: { valueKey, childrenKey },
+      } = this._option;
+
+      const root = d3.hierarchy(this._data, d => d[childrenKey]);
+
+      this._rootData = d3.tree()
+        .size([this._innerHeight, this._innerWidth])
+        // .separation((a, b) => a.parent == b.parent ? 1 : 2)
+        (root);
+    }
+
+    renderScale() {
+      const {
+        horizontalTree: {
+          valueKey,
+          node: { radiusExtent }
+        }
+      } = this._option;
+
+      let max = -Infinity, min = Infinity;
+      const dfs = (node) => {
+        if (!node) return;
+        max = Math.max(max, node[valueKey]);
+        min = Math.min(min, node[valueKey]);
+        node.children
+          ? node.children.forEach(d => dfs(d))
+          : null;
+      };
+      dfs(this._data);
+      this._valueScale = d3.scaleLinear()
+        .domain([min, max])
+        .range(radiusExtent);
+    }
+
+    renderPath() {
+      const {
+        horizontalTree: {
+          uniqueKey,
+          animation: { duration, ease }
+        },
+
+      } = this._option;
+
+      const {
+        primary1: lineColor
+      } = this._theme;
+
+      this._pathGroupElements = this._pathGroup
+        .selectAll('path')
+        .data(this._rootData.links(), d => d.target.data[uniqueKey])
+        .join(
+          enter => enter.append('path')
+            .attr('d', d => {
+              return d3.linkHorizontal()
+                .x(d => d.y)
+                .y(d => d.x)
+                ({ source: d.source, target: d.source })
+            }),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('stroke', lineColor)
+        .attr('fill', 'none')
+        .attr("d", d3.linkHorizontal()
+          .x(d => d.y)
+          .y(d => d.x));
+    }
+
+    renderNode() {
+      const {
+        horizontalTree: {
+          uniqueKey,
+          nodeKey,
+          childrenKey,
+          valueKey,
+          animation: { duration, ease },
+        },
+        tooltip: { format }
+      } = this._option;
+
+      const {
+        primary4: nodeColor
+      } = this._theme;
+
+      this._nodeGroupElements = this._nodeGroup
+        .selectAll('circle')
+        .data(this._rootData.descendants(), d => d.data[uniqueKey])
+        .join(
+          enter => enter.append('circle')
+            .attr("transform", d => `translate(${d.y}, ${d.x})`),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('fill', nodeColor)
+        .attr('r', d => this._valueScale(d.data[valueKey]))
+        .attr("transform", d => `translate(${d.y}, ${d.x})`)
+        .selection()
+        .style('cursor', 'pointer')
+        .classed('subtree-hidden', d => d.data[`_${childrenKey}`] ? true : false)
+        .classed('leaf-node', d => d.data[childrenKey] ? false : true);
+
+      withTooltip.call(this, '_nodeGroupElements', format ? format : (e, d) => {
+        return `${d.ancestors().map(d => d.data[nodeKey]).reverse().join("-><br/>")} : <strong>${d3.format(",d")(d.data[valueKey])} </strong>`;
+      });
+    }
+
+    renderText() {
+      const {
+        horizontalTree: {
+          nodeKey,
+          valueKey,
+          uniqueKey,
+          animation: { duration,ease },
+        },
+        tooltip: { format }
+      } = this._option;
+
+      this._textGroupElements = this._textGroup
+        .selectAll('text')
+        .data(this._rootData.descendants(), d => d.data[uniqueKey])
+        .join(
+          enter => enter.append('text')
+            .attr('transform', d => `translate(${d.y}, ${d.x}) rotate(90)`),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('transform', d => `translate(${d.y}, ${d.x})`)
+        .attr('font-size', d => this._valueScale(d.data[valueKey]))
+        .attr("dy", "0.31em")
+        .attr("dx", d => d.children ? '-1em' : '1em')
+        .attr("text-anchor", d => d.children ? "end" : "start")
+        .selection()
+        .html(d => d.data[nodeKey])
+        .style('cursor', 'pointer');
+
+      withTooltip.call(this, '_textGroupElements', format ? format : (e, d) => {
+        return `${d.ancestors().map(d => d.data[nodeKey]).reverse().join("-><br/>")} : <strong>${d3.format(",d")(d.data[valueKey])} </strong>`;
+      });
+    }
+  }
+
+  class VerticalTree {
+    constructor(domId, option, theme) {
+      this._domId = domId;
+      this._option = option;
+      this._theme = theme ? theme : lightBlue;
+      withLayout.call(this, domId, option);
+    }
+
+    render() {
+      withTitle.call(this);
+      withGroup.call(this, '_pathGroup', 'path-group', 'main');
+      withGroup.call(this, '_nodeGroup', 'node-group', 'main');
+      withGroup.call(this, '_textGroup', 'text-group', 'main');
+
+      this.renderData();
+      this.renderScale();
+      this.renderPath();
+      this.renderNode();
+      this.renderText();
+    }
+
+    renderData() {
+      const {
+        verticalTree: { valueKey, childrenKey },
+      } = this._option;
+
+      const root = d3.hierarchy(this._data, d => d[childrenKey]);
+
+      this._rootData = d3.tree()
+        .size([this._innerWidth, this._innerHeight])
+        // .separation((a, b) => a.parent == b.parent ? 1 : 2)
+        (root);
+    }
+
+    renderScale() {
+      const {
+        verticalTree: {
+          valueKey,
+          node: { radiusExtent }
+        }
+      } = this._option;
+
+      let max = -Infinity, min = Infinity;
+      const dfs = (node) => {
+        if (!node) return;
+        max = Math.max(max, node[valueKey]);
+        min = Math.min(min, node[valueKey]);
+        node.children
+          ? node.children.forEach(d => dfs(d))
+          : null;
+      };
+      dfs(this._data);
+      this._valueScale = d3.scaleLinear()
+        .domain([min, max])
+        .range(radiusExtent);
+    }
+
+    renderPath() {
+      const {
+        verticalTree: {
+          uniqueKey,
+          animation: { duration, ease }
+        },
+
+      } = this._option;
+
+      const {
+        primary1: lineColor
+      } = this._theme;
+
+      this._pathGroupElements = this._pathGroup
+        .selectAll('path')
+        .data(this._rootData.links(), d => d.target.data[uniqueKey])
+        .join(
+          enter => enter.append('path')
+            .attr('d', d => {
+              return d3.linkVertical()
+                .x(d => d.x)
+                .y(d => d.y)
+                ({ source: d.source, target: d.source })
+            })
+          ,
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('stroke', lineColor)
+        .attr('fill', 'none')
+        .attr("d", d3.linkVertical()
+          .x(d => d.x)
+          .y(d => d.y))
+        .selection();
+    }
+
+    renderNode() {
+      const {
+        verticalTree: {
+          uniqueKey,
+          nodeKey,
+          childrenKey,
+          valueKey,
+          animation: { duration, ease },
+        },
+        tooltip: { format }
+      } = this._option;
+
+      const {
+        primary4: nodeColor
+      } = this._theme;
+
+      this._nodeGroupElements = this._nodeGroup
+        .selectAll('circle')
+        .data(this._rootData.descendants(), d => d.data[uniqueKey])
+        .join(
+          enter => enter.append('circle')
+            .attr("transform", d => `translate(${d.x}, ${d.y})`),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('fill', nodeColor)
+        .attr('r', d => this._valueScale(d.data[valueKey]))
+        .attr("transform", d => `translate(${d.x}, ${d.y})`)
+        .selection()
+        .style('cursor', 'pointer')
+        .classed('subtree-hidden', d => d.data[`_${childrenKey}`] ? true : false)
+        .classed('leaf-node', d => d.data[childrenKey] ? false : true);
+
+      withTooltip.call(this, '_nodeGroupElements', format ? format : (e, d) => {
+        return `${d.ancestors().map(d => d.data[nodeKey]).reverse().join("-><br/>")} : <strong>${d3.format(",d")(d.data[valueKey])} </strong>`;
+      });
+    }
+
+    renderText() {
+      const {
+        verticalTree: {
+          nodeKey,
+          valueKey,
+          uniqueKey,
+          animation: { duration, ease },
+        },
+        tooltip: { format }
+      } = this._option;
+
+      this._textGroupElements = this._textGroup
+        .selectAll('text')
+        .data(this._rootData.descendants(), d => d.data[uniqueKey])
+        .join(
+          enter => enter.append('text')
+            .attr('transform', d => `translate(${d.x}, ${d.y}) rotate(90)`),
+          update => update,
+          exit => exit.remove()
+        )
+        .transition()
+        .duration(duration)
+        .ease(ease)
+        .attr('font-size', d => this._valueScale(d.data[valueKey]))
+        .attr('dy', '0.31em')
+        .attr('dx', '10')
+        .attr('transform', d => `translate(${d.x}, ${d.y}) rotate(90)`)
+        .attr("dx", d => d.children ? '-1em' : '1em')
+        .attr("text-anchor", d => d.children ? "end" : "start")
+        .selection()
+        .html(d => d.data[nodeKey])
+        .style('cursor', 'pointer');
+
+      withTooltip.call(this, '_textGroupElements', format ? format : (e, d) => {
+        return `${d.ancestors().map(d => d.data[nodeKey]).reverse().join("-><br/>")} : <strong>${d3.format(",d")(d.data[valueKey])} </strong>`;
+      });
+    }
+  }
+
+  /**
+   * register all charts with ccd3
+   */
+  factory
+    .registerStrategy('horizontalTree', HorizontalTree)
+    .registerStrategy('verticalTree', VerticalTree);
+
   exports.AlgorithmBar = AlgorithmBar;
+  exports.AlgorithmTree = AlgorithmTree;
   exports.HorizontalBar = HorizontalBar;
+  exports.HorizontalTree = HorizontalTree;
   exports.VerticalBar = VerticalBar;
+  exports.VerticalTree = VerticalTree;
   exports.init = init;
   exports.register = register;
 
