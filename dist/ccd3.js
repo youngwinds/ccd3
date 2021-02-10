@@ -848,7 +848,6 @@
       this._domId = domId;
       this._option = option;
       this._theme = theme ? theme : lightBlue;
-      console.log(theme,lightBlue);
       withLayout.call(this, domId, option);
     }
 
