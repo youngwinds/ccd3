@@ -99,17 +99,23 @@ const option = {
 const option = {
     title: {
         text: 'Main Title',
-        subText: 'Sub title'
+        subText: 'Sub title',
+        transition:{
+            duration:1000,
+            ease:d3.easeBackOut
+        }
     }
 }
 ```
 
 **detail**
 
-| name          | type   | sample value | description |
-| ------------- | ------ | ------------ | ----------- |
-| title.text    | string | `main Title` | main title  |
-| title.subText | string | `sub title`  | sub title   |
+| name                | type     | sample value                   | description             |
+| ------------------- | -------- | ------------------------------ | ----------------------- |
+| title.text          | string   | `main Title`                   | main title              |
+| title.subText       | string   | `sub title`                    | sub title               |
+| transition.duration | number   | custom number,like `1000`      | Animation duration time |
+| transition.ease     | d3's api | d3.ease\*,like `d3.easeLinear` | Animation ease effect   |
 
 ### option.tooltip
 
