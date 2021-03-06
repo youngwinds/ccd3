@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="dom" style="width: 970px;height: 600px;"></div>
+  <script src="../../node_modules/d3/dist/d3.js"></script>
+  <script src="../../dist/ccd3.js"></script>
+
+  <script>
+    console.log(ccd3);
+    const option = {
+      name: 'algorithmTree',
+      algorithmTree: {
+        uniqueKey: 'name',
+        nodeKey: 'name',
+        valueKey: 'value',
+        childrenKey: 'children',
+        stateKey: 'state',
+        state: {
+          start: '#93b7e3',
+          end: '#edafda'
+        },
+        node: {
+          radiusExtent: [10, 10]
+        },
+        on: {
+          click: (event, value, data) => { console.log(event, value, data) }
+        },
+        animation: {
+          duration: 1000,
+          ease: d3.easeBounce
+        }
+      },
+      layout: {
+        margin: {
+          top: 75,
+          right: 25,
+          bottom: 75,
+          left: 25
+        },
+        zoom: true,
+      },
+      title: {
+        text: 'Algorithm Tree',
+        subText: 'Tree',
+        transition: {
+          duration: 2000,
+          ease: d3.easeBackOut
+        }
+      },
+      tooltip: {
+        transition: {
+          duration: 300,
+          ease: d3.easeBackOut
+        }
+      }
+    }
+    const data = {
+      name: '算法',
+      value: 1,
+      state: 'start',
+      children: [
+        {
+          name: '排序算法',
+          value: 2,
+          state: 'start',
+          children: [
+            { name: '冒泡排序', state: 'start', value: 3 },
+            { name: '选择排序', state: 'start', value: 3 },
+            { name: '插入排序', state: 'start', value: 3 },
+            { name: '堆排序', state: 'start', value: 3 },
+            { name: '快速排序', state: 'start', value: 3 },
+            { name: '希尔排序', state: 'start', value: 3 },
+            { name: '归并排序', state: 'start', value: 3 },
+            { name: '桶排序', state: 'start', value: 3 },
+          ]
+        },
+        {
+          name: '链表',
+          value: 2,
+          state: 'start',
+          children: [
+            { name: '单链表', state: 'start', value: 2 },
+            { name: '双向链表', state: 'start', value: 2 },
+          ]
+        },
+        {
+          name: '图',
+          value: 2,
+          state: 'start',
+          children: [
+            { name: 'DFS', state: 'start', value: 3 },
+            { name: 'BFS', state: 'start', value: 3 },
+            { name: '最短路径', state: 'start', value: 3 },
+          ]
+        },
+        {
+          name: '树',
+          value: 2,
+          state: 'start',
+          children: [
+            { name: '先序遍历', state: 'start', value: 3 },
+            { name: '中序遍历', state: 'start', value: 3 },
+            { name: '后序遍历', state: 'start', value: 3 },
+          ]
+        }
+      ]
+    }
+
+    const theme = {
+      name: 'default',
+      primary1: '#93b7e3',
+      primary2: '#59c4e6',
+      primary3: '#edafda',
+      primary4: '#516b91',
+      primary5: '#a5e7f0',
+      primary6: '#cbb0e3',
+      colorSets: ['#93b7e3', ' #59c4e6', '#edafda', ' #516b91', '#a5e7f0', ' #cbb0e3', ' #3fb1e3', ' #6be6c1', ' #626c91', '#a0a7e6', '#c4ebad', '#96dee8'],
+      layout: {
+        backgroundColor: '#fff',
+        textColor: '#212121',
+        labelColor: '#eee',
+      },
+      title: {
+        textStyle: {
+          x: '0',
+          y: '0',
+          color: '#516b91',
+          fontSize: '1.5em',
+          fontWeight: '700'
+        },
+        subTextStyle: {
+          x: '0',
+          y: '0',
+          color: '#93b7e3',
+          fontSize: '1em',
+          fontWeight: '400'
+        },
+      },
+      axisBottom: {
+        tickColor: '#eee',
+        lineColor: '#ccc',
+        textColor: '#999',
+      },
+      axisLeft: {
+        lineColor: '#ccc',
+        textColor: '#999',
+      },
+      tooltip: {
+        pointerEvents: 'none',
+        textColor: '#212121',
+        backgroundColor: '#ffffffcc',
+        boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
+        border: ' 1px solid #eee',
+        borderRadius: '5px',
+        padding: '0.75rem 1rem',
+        whiteSpace: 'no-warp',
+        zIndex: '3080',
+        position: 'absolute',
+      }
+    }
+
+    const [tree, setTree] = ccd3.init('dom', option, theme);
+
+    setTree(data)
+  </script>
+</body>
+
+</html>

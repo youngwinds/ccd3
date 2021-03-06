@@ -21,7 +21,11 @@ const option = {
   },
   title: {
     text: 'Bar',
-    subText: 'vertical'
+    subText: 'vertical',
+    transition: {
+      duration: 1000,
+      ease: d3.easeBounce
+    }
   },
   tooltip: {
     format: (event, data) => {

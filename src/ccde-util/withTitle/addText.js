@@ -8,6 +8,14 @@ function addText() {
 
   const {
     title: {
+      transition: {
+        duration, ease
+      }
+    }
+  } = this._option;
+
+  const {
+    title: {
       textStyle: {
         x = '0',
         y = '0',
@@ -33,6 +41,8 @@ function addText() {
       ,
       update => update
         .transition()
+        .duration(duration)
+        .ease(ease)
         .attr('class', 'title')
         .attr('dy', '1em')
         .attr('x', x)

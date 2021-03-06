@@ -32,7 +32,11 @@ const option = {
   },
   title: {
     text: 'Algorithm Tree',
-    subText: 'Tree'
+    subText: 'Tree',
+    transition: {
+      duration: 1000,
+      ease: d3.easeBounce
+    }
   },
   tooltip: {
     transition: {

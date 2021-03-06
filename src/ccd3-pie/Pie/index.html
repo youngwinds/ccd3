@@ -14,18 +14,19 @@
   <script src="../../../node_modules/d3/dist/d3.js"></script>
   <script type="module">
 
-    import { HorizontalBar } from './index.js';
+    import { Pie as Chart } from './index.js';
     import { option, data } from './config.js';
 
-    const bar = new HorizontalBar('dom', option);
+    const chart = new Chart('dom', option);
 
-    bar._data = data;
-    bar.render();
+    chart._data = data;
+    chart.render();
 
     setTimeout(() => {
       data.sort((a, b) => a.value - b.value);
-      bar.render()
-    }, 1000)
+      data.pop()
+      chart.render()
+    }, 2000)
 
   </script>
 </body>

@@ -28,7 +28,11 @@ const option = {
   },
   title: {
     text: 'Algorithm Bar',
-    subText: 'Bubble sort'
+    subText: 'Bubble sort',
+    transition: {
+      duration: 1000,
+      ease: d3.easeBounce
+    }
   },
   tooltip: {
     format: (event, data) => {

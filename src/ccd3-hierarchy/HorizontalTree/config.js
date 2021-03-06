@@ -27,7 +27,11 @@ const option = {
   },
   title: {
     text: 'Horizontal Tree',
-    subText: 'Hierarchie'
+    subText: 'Hierarchie',
+    transition: {
+      duration: 1000,
+      ease: d3.easeBounce
+    }
   },
   tooltip: {
     transition: {
