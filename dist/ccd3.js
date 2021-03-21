@@ -1254,7 +1254,7 @@
       this.renderData();
       this.renderScale();
       this.renderPath();
-      this.renderLegend();
+      // this.renderLegend();
     }
 
     renderData() {
@@ -1315,34 +1315,34 @@
       withTooltip.call(this, '_pathGroupElement', format);
     }
 
-    renderLegend() {
-      this._legendGroupElements = this._legendGroup
-        .attr("text-anchor", "end")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-        .selectAll("g")
-        .data(this._colorScale.domain())
-        .join("g")
-        .attr("transform", (d, i) => `translate(0,${i * 20})`);
+    // renderLegend() {
+    //   this._legendGroupElements = this._legendGroup
+    //     .attr("text-anchor", "end")
+    //     .attr("font-family", "sans-serif")
+    //     .attr("font-size", 10)
+    //     .selectAll("g")
+    //     .data(this._colorScale.domain())
+    //     .join("g")
+    //     .attr("transform", (d, i) => `translate(0,${i * 20})`);
 
-      this._legendGroupElements
-        .selectAll('rect')
-        .data(d => [d])
-        .join("rect")
-        .attr("x", -19)
-        .attr("width", 19)
-        .attr("height", 19)
-        .attr("fill", this._colorScale);
+    //   this._legendGroupElements
+    //     .selectAll('rect')
+    //     .data(d => [d])
+    //     .join("rect")
+    //     .attr("x", -19)
+    //     .attr("width", 19)
+    //     .attr("height", 19)
+    //     .attr("fill", this._colorScale);
 
-      this._legendGroupElements
-        .selectAll('text')
-        .data(d => [d])
-        .join("text")
-        .attr("x", -24)
-        .attr("y", 9.5)
-        .attr("dy", "0.35em")
-        .text(d => d);
-    }
+    //   this._legendGroupElements
+    //     .selectAll('text')
+    //     .data(d => [d])
+    //     .join("text")
+    //     .attr("x", -24)
+    //     .attr("y", 9.5)
+    //     .attr("dy", "0.35em")
+    //     .text(d => d);
+    // }
   }
 
   /**
