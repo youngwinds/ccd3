@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="dom" style="width: 970px;height: 600px;"></div>
+  <script src="../../node_modules/d3/dist/d3.js"></script>
+  <script src="../../dist/ccd3.js"></script>
+
+  <script>
+    const option = {
+      name: 'forceDirected',
+      forceSimulation: {
+        forceCollide: {
+          radius: 1,
+          strength: 1
+        },
+        forceLink: {
+          distance: 30
+        },
+        forceManyBody: {
+          strength: -30,
+          theta: 0.9,
+          distanceMin: 10
+        },
+        forceX: {
+          strength: 0,
+          x: 0,
+        },
+        forceY: {
+          strength: 0,
+          y: 0,
+        }
+      },
+      nodes: {
+        key: 'nodes',
+        nameKey: 'id',
+        sizeKey: 'size',
+        groupKey: 'group',
+        nodeSizeExtent: [5, 15],
+        nodeOpacityExtent: [.5, 1],
+        on: {
+          click: (event, d) => {
+            console.log(event, d);
+          },
+          mouseover: (event, d) => {
+            console.log(event, d);
+          },
+          mouseout: (event, d) => {
+            console.log(event, d);
+          },
+        },
+      },
+      links: {
+        key: 'links',
+        sourceKey: 'source',
+        targetKey: 'target',
+        valueKey: 'value',
+        lineWidthExtent: [1, 5],
+        lineOpacityExtent: [0.2, 0.5]
+      },
+      tooltip: {
+        format: (e, d) => {
+          let keys = ['id', 'size', 'group'];
+          return keys.map(k => `${k} : ${d[k]}`).join('<br/>');
+        },
+        transition: {
+          duration: 300,
+          ease: d3.easeBackOut
+        }
+      },
+      title: {
+        text: '力导向图标题',
+        subText: '力导向图副标题',
+        info: '力导向图提示',
+        transition: {
+          duration: 300,
+          ease: d3.easeBackOut
+        }
+      },
+      layout: {
+        margin: {
+          top: 50,
+          right: 50,
+          bottom: 50,
+          left: 50
+        },
+        zoom: true
+      }
+    }
+
+    const data = {
+      nodes: [
+        {
+          id: 'A',
+          size: 100,
+          group: 1,
+        },
+        {
+          id: 'B',
+          size: 80,
+          group: 2,
+        },
+        {
+          id: 'C',
+          size: 50,
+          group: 1,
+        }
+      ],
+      links: [
+        {
+          source: "B",
+          target: "A",
+          value: 3
+        },
+        {
+          source: "B",
+          target: "C",
+          value: 3
+        },
+      ]
+    }
+
+    const theme = {
+      name: 'default',
+      primary1: '#93b7e3',
+      primary2: '#59c4e6',
+      primary3: '#edafda',
+      primary4: '#516b91',
+      primary5: '#a5e7f0',
+      primary6: '#cbb0e3',
+      colorSets: ['#93b7e3', '#59c4e6', '#edafda', ' #516b91', '#a5e7f0', '#cbb0e3', ' #3fb1e3', ' #6be6c1', '#626c91', '#a0a7e6', '#c4ebad', '#96dee8'],
+      layout: {
+        backgroundColor: '#fff',
+        textColor: '#212121',
+        labelColor: '#eee',
+      },
+      title: {
+        textStyle: {
+          x: '0',
+          y: '0',
+          color: '#516b91',
+          fontSize: '1.5em',
+          fontWeight: '700'
+        },
+        subTextStyle: {
+          x: '0',
+          y: '0',
+          color: '#93b7e3',
+          fontSize: '1em',
+          fontWeight: '400'
+        },
+      },
+      axisBottom: {
+        tickColor: '#eee',
+        lineColor: '#ccc',
+        textColor: '#999',
+      },
+      axisLeft: {
+        lineColor: '#ccc',
+        textColor: '#999',
+      },
+      tooltip: {
+        pointerEvents: 'none',
+        textColor: '#212121',
+        backgroundColor: '#ffffffcc',
+        boxShadow: '0 3px 14px rgba(0,0,0,0.4)',
+        border: ' 1px solid #eee',
+        borderRadius: '5px',
+        padding: '0.75rem 1rem',
+        whiteSpace: 'no-warp',
+        zIndex: '3080',
+        position: 'absolute',
+      }
+    }
+
+    const [chart, setChart] = ccd3.init('dom', option, theme);
+
+    setChart(data, option, theme);
+
+
+  </script>
+</body>
+
+</html>
