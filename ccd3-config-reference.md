@@ -1,12 +1,12 @@
 [TOC]
 
-# CCD3 Option Reference
+# CCD3 Config Reference
 
 ccd3 has **Four** kind of chart configuration.
 
-[Common Configuration](#Common Configuration)
+- [Common Configuration](#Common Configuration)
 
-The `Common Configuration` is valid for each chart.
+  The `Common Configuration` is valid for each chart.
 
 1. [name](#option.name)
 2. [layout](#option.layout)
@@ -15,22 +15,28 @@ The `Common Configuration` is valid for each chart.
 5. [axisBottom](#option.axisBottom)
 6. [axisLeft](#option.axisLeft)
 
-[Scale Configuration](#Scale Configuration)
 
-In addition, `Scale Configuration`  are listed independently.For each scale, there are some additional configuration items.
+
+- [Scale Configuration](#Scale Configuration)
+
+  In addition, `Scale Configuration`  are listed independently.For each scale, there are some additional configuration items.
 
 1. [scaleBand](#scaleBand)
 2. [scaleLinear](#scaleLinear)
 
-[Independent Configuration](#Independent Configuration)
 
-The `Independent Configuration` is valid for single chart.
+
+- [Independent Configuration](#Independent Configuration)
+
+  The `Independent Configuration` is valid for single chart.
 
 1. [algorithmBar](#algorithmBar)
 
-[Theme configuration](#Theme configuration)
 
-The `Theme configuration` is valid for each chart.
+
+- [Theme configuration](#Theme configuration)
+
+  The `Theme configuration` is valid for each chart.
 
 1. [lightBlue](#lightBlue)
 
@@ -155,15 +161,18 @@ const option = {
 const option = {
     axisBottom: {
         key: 'name',
-        grid: false,
+        grid: true,
         scale: {
-            name: 'scaleBand'
+            name: 'scaleBand',
+            reverse: false,
+            paddingInner: 0.5,
+            paddingOuter: 0.5,
         },
         transition: {
-            duration: 300,
-            ease: d3.easeLinear
+            duration: 1000,
+            ease: d3.easeBounce
         }
-    }
+    },
 }
 ```
 
@@ -174,6 +183,9 @@ const option = {
 | key                 | string   | custom string,like `name`      | Corresponding to data.                                       |
 | grid                | boolean  | `true` or `false`              | Turn on or off the axis grid.                                |
 | scale.name          | string   | `scaleBand` ,`scaleLinear`     | Built in scales that match the properties of the corresponding data |
+| scale.reverse       | boolean  | `true` or `false`              | reverse the axis                                             |
+| scale.paddingInner  | number   | 0.5                            | set the inner padding                                        |
+| scale.paddingOuter  | number   | 0.5                            | set the outer padding                                        |
 | transition.duration | number   | custom number,like `1000`      | Animation duration time                                      |
 | transition.ease     | d3's api | d3.ease\*,like `d3.easeLinear` | Animation ease effect                                        |
 
@@ -190,13 +202,16 @@ const option = {
 const option = {
     axisLeft: {
         key: 'value',
-        grid: false,
+        grid: true,
         scale: {
-            name: 'scaleLinear'
+            name: 'scaleLinear',
+            extent: false,
+            reverse: false,
+            nice: true,
         },
         transition: {
-            duration: 300,
-            ease: d3.easeLinear
+            duration: 1000,
+            ease: d3.easeBounce
         }
     }
 }
@@ -209,6 +224,9 @@ const option = {
 | key                 | string   | custom string,like `name`      | Corresponding to data.                                       |
 | grid                | boolean  | `true` or `false`              | Turn on or off the axis grid.                                |
 | scale.name          | string   | `scaleBand` ,`scaleLinear`     | Built in scales that match the properties of the corresponding data |
+| extent              | boolean  | `true` or `false`              | set the start                                                |
+| reverse             | boolean  | `true` or `false`              | reverse the axis                                             |
+| nice                | boolean  | `true` or `false`              | make the axis looks better                                   |
 | transition.duration | number   | custom number,like `1000`      | Animation duration time                                      |
 | transition.duration | d3's api | d3.ease\*,like `d3.easeLinear` | Animation ease effect                                        |
 
@@ -230,22 +248,26 @@ When name is `scaleBand`,like this demo.
 
 There are 3 optional options:
 
-1. `round ` which default to false
+1. `reverse` which default to false
 2. `paddingInner ` which default to 0.5
 3. `paddingOuter ` which default to 0.5
 
 ```js
 const option = {
-    axisBottom:{
-        key: 'name',
-        grid: true,
-        scale: {
-            name: 'scaleBand',
-            reverse: false,
-            paddingInner: 0.5,
-            paddingOuter: 0.5,
-        }
+    axisBottom: {
+    key: 'name',
+    grid: true,
+    scale: {
+      name: 'scaleBand',
+      reverse: false,
+      paddingInner: 0.5,
+      paddingOuter: 0.5,
+    },
+    transition: {
+      duration: 1000,
+      ease: d3.easeBounce
     }
+  }
 }
 ```
 
@@ -261,16 +283,20 @@ There are 3 optional options:
 
 ```js
 const option = {
-    leftAxis: {
-        key: 'value',
-        grid: true,
-        scale: {
-            name: 'scaleLinear',
-            extent: false,
-            reverse: false,
-            nice: true
-        }
+    axisLeft: {
+    key: 'value',
+    grid: true,
+    scale: {
+      name: 'scaleLinear',
+      extent: false,
+      reverse: false,
+      nice: true,
+    },
+    transition: {
+      duration: 1000,
+      ease: d3.easeBounce
     }
+  }
 }
 ```
 
