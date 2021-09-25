@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="dom" style="width:970px;height:600px;"></div>
+
+  <script src="../../../node_modules/d3/dist/d3.js"></script>
+  <script type="module">
+
+    import { Radar as Chart } from './index.js';
+    import { option, data } from './config.js';
+
+    const chart = new Chart('dom', option);
+
+    chart._data = data;
+    console.log(chart._data);
+    chart.render();
+
+    setTimeout(() => {
+      data.sort((a, b) => a.value - b.value);
+      data.pop()
+      chart.render()
+    }, 2000)
+
+  </script>
+</body>
+
+</html>
